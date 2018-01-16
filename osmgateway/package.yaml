@@ -36,6 +36,18 @@ executables:
     dependencies:
     - osmgateway
 
+executables:
+  osmgateway-authorise:
+    main:                Main.hs
+    source-dirs:         authorise
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - osmgateway
+
+
 tests:
   osmgateway-test:
     main:                Spec.hs
