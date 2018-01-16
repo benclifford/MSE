@@ -38,6 +38,7 @@ executables:
     - wreq
     - lens
     - aeson
+    - unordered-containers
 
   osmgateway-authorise:
     main:                Main.hs

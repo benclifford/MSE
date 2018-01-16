@@ -1,9 +1,13 @@
 {-# Language OverloadedStrings #-}
+{-# Language ScopedTypeVariables #-}
 module Main where
 
 import Control.Lens
 import Data.Aeson
-import Data.Aeson.Types (typeMismatch)
+import Data.Aeson.Types (typeMismatch, parseEither)
+import Data.HashMap.Lazy (HashMap)
+import qualified Data.HashMap.Lazy as HM
+import Data.Traversable (for)
 import Network.Wreq
 
 import Lib
@@ -32,6 +36,24 @@ instance FromJSON Section where
     pure $ Section sid sname gid gname
     
   parseJSON other = typeMismatch "Section" other
+
+data Term = Term {
+  _termid :: String,
+  _termsectionid :: String,
+  _termname :: String,
+  _startdate :: String,
+  _enddate :: String
+} deriving Show
+
+instance FromJSON Term where
+  parseJSON (Object hm) = Term <$>
+        hm .: "termid"
+    <*> hm .: "sectionid"
+    <*> hm .: "name"
+    <*> hm .: "startdate"
+    <*> hm .: "enddate"
+
+  parseJSON other = typeMismatch "Term" other
 
 main :: IO ()
 main = do
@@ -71,6 +93,26 @@ main = do
 
   print $ r ^.. responseBody
 
+  {-
+   what is in the response body is a json object, not a list,
+   mapping section ID => [Term]
+
+   what I want is a simple table of terms, and as those terms
+   contain the ID, I can probably discard the outer ID
+   (or assert that it is equal to the inner one and discard it)
+   -}
+
+  let termsMap = eitherDecode (head $ r ^.. responseBody) :: Either String (HashMap String [Term])
+
+  let
+   terms :: [Term] = case termsMap of 
+    Left err -> error $ "termsmap: " ++ err
+    Right v -> concat (HM.elems v)
+
+  putStrLn "terms = "
+  mapM_ print terms
+
+
   putStrLn "osmgateway: getting user roles"
   
   let url = "https://www.onlinescoutmanager.co.uk/api.php"
@@ -99,10 +141,15 @@ main = do
   -- (but what in this case?)
   let sectionConfigsE = eitherDecode (head $ sectionConfigsJSON ^.. responseBody) :: Either String [Section]
 
-  case sectionConfigsE of
+  sectionConfigs <- case sectionConfigsE of
     Right sectionConfigs -> do
       putStrLn "deserialised sections:"
       mapM_ print sectionConfigs
+      return sectionConfigs
     Left e -> error $ "Deserialising sections: " ++ e
+
+  for (map _sectionid sectionConfigs) $ \sectionid -> do
+    putStrLn $ "Retrieving members for section id " ++ sectionid
+    
 
   putStrLn "osmgateway finished"
