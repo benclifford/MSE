@@ -4,3 +4,17 @@ All rights reserved.
 
 reglatex - LaTeX to generate PDF registration forms
 osmgateway - imports data from OSM live service to local cache tables
+
+0. acquire API credentials (including a secret) from OSM HQ for this
+     application.
+
+1. osmgateway-authorise  to authorise your account to be accessed by
+   this application.
+
+   OSM API bug: OSM returns 200 even when there is an error such as
+     ["{\"error\":\"Missing email\\/token\"}"]
+
+
+2. enable this application in OSM.
+
+
