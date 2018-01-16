@@ -2,6 +2,8 @@
 module Main where
 
 import Control.Lens
+import Data.Aeson
+import Data.Aeson.Types (typeMismatch)
 import Network.Wreq
 
 import Lib
@@ -12,6 +14,24 @@ data Secrets = Secrets {
    _apiId :: String,
    _token :: String
   } deriving (Read, Show)
+
+
+data Section = Section {
+  _sectionid :: String,
+  _sectionname :: String,
+  _groupid :: String,
+  _groupName :: String -- denormalised wrt groupid
+} deriving Show
+
+instance FromJSON Section where
+  parseJSON (Object v) = do
+    sid <- v .: "sectionid"
+    sname <- v .: "sectionname"
+    gid <- v .: "groupid"
+    gname <- v .: "groupname"
+    pure $ Section sid sname gid gname
+    
+  parseJSON other = typeMismatch "Section" other
 
 main :: IO ()
 main = do
@@ -69,12 +89,17 @@ main = do
                  ]
 -}
 
-  r <- postWith opts url postData
+  sectionConfigsJSON <- postWith opts url postData
 
-  print r
+  print sectionConfigsJSON
 
-  print $ r ^.. responseBody
+  print $ sectionConfigsJSON ^.. responseBody
 
+  -- BUG: head here is discarding potentially some other stuff
+  -- (but what in this case?)
+  let sectionConfigs = eitherDecode (head $ sectionConfigsJSON ^.. responseBody) :: Either String [Section]
 
+  putStrLn "deserialised sections:"
+  print sectionConfigs
 
   putStrLn "osmgateway finished"

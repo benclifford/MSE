@@ -37,6 +37,7 @@ executables:
     - osmgateway
     - wreq
     - lens
+    - aeson
 
   osmgateway-authorise:
     main:                Main.hs
