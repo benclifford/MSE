@@ -14,7 +14,12 @@ osmgateway - imports data from OSM live service to local cache tables
    OSM API bug: OSM returns 200 even when there is an error such as
      ["{\"error\":\"Missing email\\/token\"}"]
 
+2. store the secret and user id returned by osmgateway-authorise
+   somewhere
 
-2. enable this application in OSM.
+3. set permissions in OSM for this application: read only access to
+    Personal Details should be all that is needed.
+
+
 
 

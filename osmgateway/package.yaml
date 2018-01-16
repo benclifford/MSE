@@ -35,8 +35,9 @@ executables:
     - -with-rtsopts=-N
     dependencies:
     - osmgateway
+    - wreq
+    - lens
 
-executables:
   osmgateway-authorise:
     main:                Main.hs
     source-dirs:         authorise
