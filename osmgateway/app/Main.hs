@@ -97,9 +97,12 @@ main = do
 
   -- BUG: head here is discarding potentially some other stuff
   -- (but what in this case?)
-  let sectionConfigs = eitherDecode (head $ sectionConfigsJSON ^.. responseBody) :: Either String [Section]
+  let sectionConfigsE = eitherDecode (head $ sectionConfigsJSON ^.. responseBody) :: Either String [Section]
 
-  putStrLn "deserialised sections:"
-  print sectionConfigs
+  case sectionConfigsE of
+    Right sectionConfigs -> do
+      putStrLn "deserialised sections:"
+      mapM_ print sectionConfigs
+    Left e -> error $ "Deserialising sections: " ++ e
 
   putStrLn "osmgateway finished"
