@@ -94,15 +94,22 @@ instance FromJSON EMCGetIndividual where
   parseJSON (Object hm) =
    EMCGetIndividual <$> hm .: "data"
 
+-- although there are a lot of fields in the JSON
+-- for this, in the case of Merrow they're mostly
+-- empty (which may or may be the case for OSM
+-- in general?). There is additional data provided in
+-- the getData response.
 data EMCGetIndividualData = EMCGetIndividualData {
     _firstname :: String
   , _lastname :: String
+  , _dob :: String
   } deriving Show
 
 instance FromJSON EMCGetIndividualData where
   parseJSON (Object hm) =
     EMCGetIndividualData <$> hm .: "firstname"
                          <*> hm .: "lastname"
+                         <*> hm .: "dob"
 
 newtype ScoutID = ScoutID Integer
   deriving Show
