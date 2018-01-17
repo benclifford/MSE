@@ -1,13 +1,18 @@
 {-# Language OverloadedStrings #-}
 {-# Language ScopedTypeVariables #-}
+{-# Language DeriveAnyClass #-}
+{-# Language DeriveGeneric #-}
 module Main where
+
 
 import Control.Lens
 import Data.Aeson
 import Data.Aeson.Types (typeMismatch, parseEither)
 import Data.HashMap.Lazy (HashMap)
+import Data.Text (pack)
 import qualified Data.HashMap.Lazy as HM
 import Data.Traversable (for)
+import GHC.Generics
 import Network.Wreq
 
 import Lib
@@ -54,6 +59,31 @@ instance FromJSON Term where
     <*> hm .: "enddate"
 
   parseJSON other = typeMismatch "Term" other
+
+-- | the format of data coming back from /ext/members/contacts
+data ExtMembersContacts = ExtMembersContacts {
+    _emcitems :: [EMCMember]
+  } deriving (Show)
+
+instance FromJSON ExtMembersContacts where
+  parseJSON (Object hm) =
+    ExtMembersContacts <$>
+      hm .: "items"
+
+
+-- we'll just grab summary stuff here - further information
+-- can come from doing a lookup based on the scoutid
+data EMCMember = EMCMember {
+    _emcfirstname :: String
+  , _emclastname :: String
+  , _emcscoutid :: Integer
+  } deriving Show
+
+instance FromJSON EMCMember where
+  parseJSON (Object hm) =
+    EMCMember <$> hm .: "firstname"
+              <*> hm .: "lastname"
+              <*> hm .: "scoutid"
 
 main :: IO ()
 main = do
@@ -148,8 +178,77 @@ main = do
       return sectionConfigs
     Left e -> error $ "Deserialising sections: " ++ e
 
-  for (map _sectionid sectionConfigs) $ \sectionid -> do
-    putStrLn $ "Retrieving members for section id " ++ sectionid
-    
+  for sectionConfigs $ \section -> do
+    let sectionid = _sectionid section
+    putStrLn $ "Retrieving members for section id " ++ sectionid ++ " in relevant term(s)"
+    putStrLn $ "Section name: " ++ _sectionname section
+
+    -- we'll pick terms for this section that match a particular
+    -- rule - in this case, spring 2018 so that we get scouts that
+    -- are in the section near the start of 2018.
+    let selectedTerms = filter (\t -> _termsectionid t == sectionid
+                                   && _termname t == "Spring 2018")
+                               terms
+
+    putStrLn $ "Selected terms: "
+    mapM_ (print . _termname) selectedTerms
+    -- TODO: what is a relevant term? any term labelled "Spring 2018" ?
+    -- Also, given a list of terms we don't actually need to loop over
+    -- section ID because we know the section ID from within the Term
+    -- object. The section list is useful for human readable display of
+    -- section name though.
+
+    for selectedTerms $ \term -> do
+      putStrLn $ "process term " ++ (_termid term)
+      -- assert denormalised consistency check:
+      -- _termsectionid term == _sectionid section
+
+   -- from web form:
+   -- https://www.onlinescoutmanager.co.uk/ext/members/contact/?action=getListOfMembers&sort=dob&sectionid=3940&termid=194039&section=scouts 
+   -- but looks like we can skip the sort and section titles.
+
+      -- QUESTION is this really the right URL for getting members details?
+      -- it doesn't look like 'api.php' at all.
+      -- It needs a / on the end too (presumably to hit something like
+      -- an index.php)
+      -- let url = "https://www.onlinescoutmanager.co.uk/api.php"
+      -- let url = "https://www.onlinescoutmanager.co.uk/ext/members/contact"
+      let url = "https://www.onlinescoutmanager.co.uk/ext/members/contact/"
+
+      let opts = defaults & param "action" .~ ["getListOfMembers"]
+                          & param "termid" .~ [pack $ _termid term]
+                          & param "sectionid" .~ [pack $ _sectionid section]
+
+      let postData = [ "userid" := _userid secrets
+                     , "secret" := _secret secrets  
+                     , "apiid" := _apiId secrets
+                     , "token" := _token secrets
+{- QUESTION/DISCUSSION: what an awkward separation of parameters
+   between URL and post data 
+                     , "termid" := _termid term
+                     , "sectionid" := _sectionid section
+-}
+                     ]
+
+      r <- postWith opts url postData
+
+      print r
+
+      print $ r ^.. responseBody
+
+      let ovE :: Either String ExtMembersContacts = eitherDecode $ head $ r ^.. responseBody
+
+      case ovE of
+        Left err -> error $ "Decoding response from ext/members/contact/ - " ++ err
+        Right obs -> do 
+          putStrLn "members/contact object decoded"
+          print obs
+          let items = _emcitems obs
+          mapM_ print items
+          let scoutids = map _emcscoutid items
+          putStrLn "Scoutids for this section:"
+          print scoutids
+          pure ()
 
   putStrLn "osmgateway finished"
+

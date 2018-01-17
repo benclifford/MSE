@@ -25,6 +25,10 @@ osmgateway - imports data from OSM live service to local cache tables
 3. set permissions in OSM for this application: read only access to
     Personal Details should be all that is needed.
 
+   Note that each section has separate permissions: although the
+   permissions dialog lives in "Account", it edits permissions for
+   your account in that section only.
+
 4. run osmgateway-exe to run whatever functionality has been
    implemented so far.
 
