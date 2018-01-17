@@ -111,6 +111,45 @@ instance FromJSON EMCGetIndividualData where
                          <*> hm .: "lastname"
                          <*> hm .: "dob"
 
+
+-- | data returned for a member from getData
+data ExtraData = ExtraData {
+  _groups :: [ExtraDataGroup]
+} deriving Show
+
+instance FromJSON ExtraData where
+  parseJSON (Object hm) = ExtraData <$> hm .: "data"
+
+data ExtraDataGroup = ExtraDataGroup {
+    _groupID :: Integer
+  , _identifier :: String
+  , _name :: String
+  , _columns :: [ExtraDataGroupColumn]
+} deriving Show
+
+instance FromJSON ExtraDataGroup where
+  parseJSON (Object hm) = 
+    ExtraDataGroup
+    <$> hm .: "group_id"
+    <*> hm .: "identifier"
+    <*> hm .: "name"
+    <*> hm .: "columns"
+
+data ExtraDataGroupColumn = ExtraDataGroupColumn {
+    _column_id :: Integer
+  , _varname :: String
+  , _label :: String
+  , _value :: String
+} deriving Show
+
+instance FromJSON ExtraDataGroupColumn where
+  parseJSON (Object hm) =
+   ExtraDataGroupColumn
+   <$> hm .: "column_id"
+   <*> hm .: "varname"
+   <*> hm .: "label"
+   <*> hm .: "value"
+
 newtype ScoutID = ScoutID Integer
   deriving Show
 
@@ -343,7 +382,13 @@ main = do
             print r
 
             print $ r ^.. responseBody
+            let extraDataE :: Either String ExtraData = eitherDecode (head $ r ^.. responseBody)
 
+            case extraDataE of
+              Left err -> error $ "parsing ExtraData: " ++ err
+              Right extraData -> do
+                putStrLn "Extra data parsed to Haskell:"
+                print extraData
 
           pure ()
 
