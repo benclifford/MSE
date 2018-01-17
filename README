@@ -10,9 +10,14 @@ osmgateway - imports data from OSM live service to local cache tables
 
 1. osmgateway-authorise  to authorise your account to be accessed by
    this application.
+   Note that this involves putting your real OSM
+   password into my code, which is not OSM. That's fine for my
+   personal use but a bit dodgy if this was some third party service.
 
    OSM API bug: OSM returns 200 even when there is an error such as
      ["{\"error\":\"Missing email\\/token\"}"]
+
+   c.f. github third-party auth flow
 
 2. store the secret and user id returned by osmgateway-authorise
    somewhere
@@ -20,6 +25,7 @@ osmgateway - imports data from OSM live service to local cache tables
 3. set permissions in OSM for this application: read only access to
     Personal Details should be all that is needed.
 
-
+4. run osmgateway-exe to run whatever functionality has been
+   implemented so far.
 
 
