@@ -319,8 +319,30 @@ main = do
                 putStrLn "Decoded individual response:"
                 print obs 
 
+            putStrLn $ "Requesting full data for " ++ show scoutid 
 
+            -- section goes into the URL, but scoutid goes into the
+            -- post fields...
+            -- https://www.onlinescoutmanager.co.uk/ext/customdata/?action=getData&section_id=3940
+            let url = "https://www.onlinescoutmanager.co.uk/ext/customdata/"
 
+            let (ScoutID scoutid_num) = scoutid
+            let opts = defaults & param "action" .~ ["getData"]
+                          & param "section_id" .~ [pack $ _sectionid section]
+
+            let postData = [ "userid" := _userid secrets
+                           , "secret" := _secret secrets  
+                           , "apiid" := _apiId secrets
+                           , "token" := _token secrets
+                           , "associated_id" := (show $ scoutid_num)
+                           , "associated_type" := ("member" :: String)
+                     ]
+
+            r <- postWith opts url postData
+
+            print r
+
+            print $ r ^.. responseBody
 
 
           pure ()
