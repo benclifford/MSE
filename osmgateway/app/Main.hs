@@ -76,14 +76,36 @@ instance FromJSON ExtMembersContacts where
 data EMCMember = EMCMember {
     _emcfirstname :: String
   , _emclastname :: String
-  , _emcscoutid :: Integer
+  , _emcscoutid :: ScoutID
   } deriving Show
 
 instance FromJSON EMCMember where
   parseJSON (Object hm) =
     EMCMember <$> hm .: "firstname"
               <*> hm .: "lastname"
-              <*> hm .: "scoutid"
+              <*> (ScoutID <$> hm .: "scoutid")
+
+
+data EMCGetIndividual = EMCGetIndividual {
+    _data :: EMCGetIndividualData
+  } deriving Show
+
+instance FromJSON EMCGetIndividual where
+  parseJSON (Object hm) =
+   EMCGetIndividual <$> hm .: "data"
+
+data EMCGetIndividualData = EMCGetIndividualData {
+    _firstname :: String
+  , _lastname :: String
+  } deriving Show
+
+instance FromJSON EMCGetIndividualData where
+  parseJSON (Object hm) =
+    EMCGetIndividualData <$> hm .: "firstname"
+                         <*> hm .: "lastname"
+
+newtype ScoutID = ScoutID Integer
+  deriving Show
 
 main :: IO ()
 main = do
@@ -248,6 +270,52 @@ main = do
           let scoutids = map _emcscoutid items
           putStrLn "Scoutids for this section:"
           print scoutids
+
+          for scoutids $ \scoutid -> do
+            putStrLn $ "Retrieving individual details for: " ++ show scoutid
+            -- from web API:
+            -- https://www.onlinescoutmanager.co.uk/ext/members/contact/?action=getIndividual&sectionid=3943&scoutid=1004107&termid=194058&context=members
+            -- section and term, although seemingly they wouldn't be needed, are mandatory. context is not. so this works:
+            -- https://www.onlinescoutmanager.co.uk/ext/members/contact/?action=getIndividual&sectionid=3943&scoutid=1004107&termid=194058
+
+            -- which means we can only get the information for a member in the context of a Term (the section ID is implied by and contained in the Term) - the data is not identical across sections/terms, although hopefully it is pretty consistent.
+            -- note that there is an "Others" text field listing other sections that the person is associated with - for example, in an Adults term, I am also listed as "1st Merrow: Scouts"
+
+
+
+            let url = "https://www.onlinescoutmanager.co.uk/ext/members/contact/"
+
+            let (ScoutID scoutid_num) = scoutid
+            let opts = defaults & param "action" .~ ["getIndividual"]
+                          & param "termid" .~ [pack $ _termid term]
+                          & param "sectionid" .~ [pack $ _sectionid section]
+                          & param "scoutid" .~ [pack $ show $ scoutid_num]
+
+            let postData = [ "userid" := _userid secrets
+                           , "secret" := _secret secrets  
+                           , "apiid" := _apiId secrets
+                           , "token" := _token secrets
+                     ]
+
+            r <- postWith opts url postData
+
+            print r
+
+            print $ r ^.. responseBody
+
+            let ovE :: Either String EMCGetIndividual = eitherDecode $ head $ r ^.. responseBody
+
+            case ovE of
+              Left err -> error $ "Decoding individual response from ext/members/contact/ - " ++ err
+              Right obs -> do 
+                putStrLn "members/contact object decoded"
+                putStrLn "Decoded individual response:"
+                print obs 
+
+
+
+
+
           pure ()
 
   putStrLn "osmgateway finished"
