@@ -13,7 +13,8 @@ import Data.Text (pack)
 import qualified Data.HashMap.Lazy as HM
 import Data.Traversable (for)
 import GHC.Generics
-import Network.Wreq
+import Network.Wreq as WReq
+import Network.Wreq.Types (Postable)
 
 import Lib
 
@@ -179,37 +180,11 @@ main = do
                  , "token" := _token secrets
                  ]
 
-{-
-                 , "password" := password
-                 , "email" := email
-                 ]
--}
-
-  r <- postWith opts url postData
-
-  print r
-
-  print $ r ^.. responseBody
-
-  {-
-   what is in the response body is a json object, not a list,
-   mapping section ID => [Term]
-
-   what I want is a simple table of terms, and as those terms
-   contain the ID, I can probably discard the outer ID
-   (or assert that it is equal to the inner one and discard it)
-   -}
-
-  let termsMap = eitherDecode (head $ r ^.. responseBody) :: Either String (HashMap String [Term])
-
-  let
-   terms :: [Term] = case termsMap of 
-    Left err -> error $ "termsmap: " ++ err
-    Right v -> concat (HM.elems v)
+  v :: HashMap String [Term] <- postWithResponse "terms" opts url postData
+  let terms = concat (HM.elems v)
 
   putStrLn "terms = "
   mapM_ print terms
-
 
   putStrLn "osmgateway: getting user roles"
   
@@ -223,28 +198,7 @@ main = do
                  , "token" := _token secrets
                  ]
 
-{-
-                 , "password" := password
-                 , "email" := email
-                 ]
--}
-
-  sectionConfigsJSON <- postWith opts url postData
-
-  print sectionConfigsJSON
-
-  print $ sectionConfigsJSON ^.. responseBody
-
-  -- BUG: head here is discarding potentially some other stuff
-  -- (but what in this case?)
-  let sectionConfigsE = eitherDecode (head $ sectionConfigsJSON ^.. responseBody) :: Either String [Section]
-
-  sectionConfigs <- case sectionConfigsE of
-    Right sectionConfigs -> do
-      putStrLn "deserialised sections:"
-      mapM_ print sectionConfigs
-      return sectionConfigs
-    Left e -> error $ "Deserialising sections: " ++ e
+  sectionConfigs :: [Section] <- postWithResponse "sectionConfigs" opts url postData
 
   for sectionConfigs $ \section -> do
     let sectionid = _sectionid section
@@ -283,6 +237,9 @@ main = do
       -- let url = "https://www.onlinescoutmanager.co.uk/ext/members/contact"
       let url = "https://www.onlinescoutmanager.co.uk/ext/members/contact/"
 
+{- QUESTION/DISCUSSION: what an awkward separation of parameters
+   between URL and post data 
+-}
       let opts = defaults & param "action" .~ ["getListOfMembers"]
                           & param "termid" .~ [pack $ _termid term]
                           & param "sectionid" .~ [pack $ _sectionid section]
@@ -291,24 +248,13 @@ main = do
                      , "secret" := _secret secrets  
                      , "apiid" := _apiId secrets
                      , "token" := _token secrets
-{- QUESTION/DISCUSSION: what an awkward separation of parameters
-   between URL and post data 
-                     , "termid" := _termid term
-                     , "sectionid" := _sectionid section
--}
+
                      ]
 
-      r <- postWith opts url postData
+      obs' :: ExtMembersContacts <- postWithResponse "ExtMembersContacts" opts url postData
 
-      print r
-
-      print $ r ^.. responseBody
-
-      let ovE :: Either String ExtMembersContacts = eitherDecode $ head $ r ^.. responseBody
-
-      case ovE of
-        Left err -> error $ "Decoding response from ext/members/contact/ - " ++ err
-        Right obs -> do 
+      case obs' of -- TODO: vacuuous case
+         obs -> do 
           putStrLn "members/contact object decoded"
           print obs
           let items = _emcitems obs
@@ -343,20 +289,13 @@ main = do
                            , "token" := _token secrets
                      ]
 
-            r <- postWith opts url postData
+            ov' :: EMCGetIndividual <- postWithResponse "EMCGetIndividual" opts url postData
 
-            print r
-
-            print $ r ^.. responseBody
-
-            let ovE :: Either String EMCGetIndividual = eitherDecode $ head $ r ^.. responseBody
-
-            case ovE of
-              Left err -> error $ "Decoding individual response from ext/members/contact/ - " ++ err
-              Right obs -> do 
+            case ov' of
+              ov -> do 
                 putStrLn "members/contact object decoded"
                 putStrLn "Decoded individual response:"
-                print obs 
+                print ov
 
             putStrLn $ "Requesting full data for " ++ show scoutid 
 
@@ -377,20 +316,27 @@ main = do
                            , "associated_type" := ("member" :: String)
                      ]
 
-            r <- postWith opts url postData
 
-            print r
-
-            print $ r ^.. responseBody
-            let extraDataE :: Either String ExtraData = eitherDecode (head $ r ^.. responseBody)
-
-            case extraDataE of
-              Left err -> error $ "parsing ExtraData: " ++ err
-              Right extraData -> do
-                putStrLn "Extra data parsed to Haskell:"
-                print extraData
+            extraData :: ExtraData <- postWithResponse "extradata" opts url postData
+            putStrLn "End of extradata block"
 
           pure ()
 
   putStrLn "osmgateway finished"
 
+postWithResponse :: 
+  (Show resp, FromJSON resp,
+   Postable postable)
+  => String -> WReq.Options -> String -> postable -> IO resp
+postWithResponse errname opts url postData = do
+  r <- postWith opts url postData
+  let bodyL = r ^.. responseBody -- this is a list but I'm going to assume it only has one element BUG
+  let valE = eitherDecode (head bodyL)
+  case valE of
+    Left err -> error $ "postWithResponse: parsing " ++ errname ++ ": " ++ err
+    Right val -> do
+      putStrLn "Parsed to Haskell: "
+      print val
+      return val
+
+  
