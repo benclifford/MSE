@@ -4,7 +4,6 @@
 {-# Language DeriveGeneric #-}
 module Main where
 
-
 import Control.Lens
 import Data.Aeson
 import Data.Aeson.Types (typeMismatch, parseEither)
@@ -338,5 +337,3 @@ postWithResponse errname opts url postData = do
       putStrLn "Parsed to Haskell: "
       print val
       return val
-
-  
