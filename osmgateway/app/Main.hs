@@ -204,6 +204,14 @@ main = do
 
   for sectionConfigs $ \section -> do
     let sectionid = _sectionid section
+
+    execute conn "insert into osm_sections (sectionid, sectionname) values (?,?)"
+      (
+        sectionid
+      , _sectionname section
+      ) 
+    putStrLn "Section has been written to database."
+
     putStrLn $ "Retrieving members for section id " ++ sectionid ++ " in relevant term(s)"
     putStrLn $ "Section name: " ++ _sectionname section
 
@@ -333,6 +341,29 @@ main = do
               ) 
             putStrLn "Individual has been written to database."
 
+            execute conn "insert into osm_individual_section (scoutid, sectionid) values (?,?)" (scoutid_num, sectionid)
+
+            putStrLn "Individual section membership has been written to the database"
+
+            for (_groups extraData) $ \extraDataGroup -> do
+              let groupid = _groupID extraDataGroup
+              putStrLn $ "Processing an extra data group: " ++ show groupid
+              for (_columns extraDataGroup) $ \column -> do
+                putStrLn "processing column"
+  {-
+    _column_id :: Integer
+  , _varname :: String
+  , _label :: String
+  , _value :: String
+-}
+                execute conn "insert into osm_extradata (scoutid, groupid, columnid, varname, label, value) values (?, ?, ?, ?, ?, ?)"
+                  (scoutid_num,
+                   groupid,
+                   _column_id column,
+                   _varname column,
+                   _label column,
+                   _value column
+                  )
           pure ()
 
   putStrLn "Closing database"
