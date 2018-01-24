@@ -35,6 +35,9 @@ executables:
     - -with-rtsopts=-N
     dependencies:
     - regmgr
+    - servant
+    - servant-server
+    - warp
 
 tests:
   regmgr-test:
