@@ -11,6 +11,7 @@ import Data.HashMap.Lazy (HashMap)
 import Data.Text (pack)
 import qualified Data.HashMap.Lazy as HM
 import Data.Traversable (for)
+import Database.PostgreSQL.Simple
 import GHC.Generics
 import Network.Wreq as WReq
 import Network.Wreq.Types (Postable)
@@ -157,6 +158,8 @@ main :: IO ()
 main = do
   putStrLn "osmgateway"
 
+  putStrLn "connecting to db"
+  conn <- connectPostgreSQL "user='postgres'"
 
   putStrLn "authorisation secrets:"
   secrets <- read <$> readFile "secrets.dat" :: IO Secrets
@@ -288,13 +291,11 @@ main = do
                            , "token" := _token secrets
                      ]
 
-            ov' :: EMCGetIndividual <- postWithResponse "EMCGetIndividual" opts url postData
+            individual :: EMCGetIndividual <- postWithResponse "EMCGetIndividual" opts url postData
 
-            case ov' of
-              ov -> do 
-                putStrLn "members/contact object decoded"
-                putStrLn "Decoded individual response:"
-                print ov
+            putStrLn "members/contact object decoded"
+            putStrLn "Decoded individual response:"
+            print individual
 
             putStrLn $ "Requesting full data for " ++ show scoutid 
 
@@ -319,8 +320,23 @@ main = do
             extraData :: ExtraData <- postWithResponse "extradata" opts url postData
             putStrLn "End of extradata block"
 
+
+            -- at this point we have a chunk of data about an individual
+            -- that we can stick in an SQL database.
+
+            execute conn "insert into osm_individuals (scoutid, firstname, lastname, dob) values (?, ?, ?, ?)" 
+              (
+                scoutid_num
+              , (_firstname . _data) individual
+              , (_lastname . _data) individual
+              , (_dob . _data) individual
+              ) 
+            putStrLn "Individual has been written to database."
+
           pure ()
 
+  putStrLn "Closing database"
+  close conn
   putStrLn "osmgateway finished"
 
 postWithResponse :: 
