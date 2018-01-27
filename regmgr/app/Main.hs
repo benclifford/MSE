@@ -62,10 +62,6 @@ type HTMLPingAPI =
   "htmlping" :> Get '[SB.HTML] B.Html
 
 
--- TODO: the base URLs for this and updateFormAPI can be the same with
--- one being for GET and one being for POST.
--- That way, it is still bookmarkable, and we can pass the UUID in the
--- URL both times rather than extracting from form data
 type InboundAuthenticatorAPI = "register" :> Capture "uuid" String :> Get '[HTML] B.Html
 
 type UpdateFormAPI = "register" :> Capture "uuid" String :> ReqBody '[FormUrlEncoded] [(String,String)] :> Post '[HTML] B.Html
