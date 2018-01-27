@@ -64,9 +64,9 @@ type HTMLPingAPI =
 -- one being for GET and one being for POST.
 -- That way, it is still bookmarkable, and we can pass the UUID in the
 -- URL both times rather than extracting from form data
-type InboundAuthenticatorAPI = "inbound" :> Capture "uuid" String :> Get '[HTML] B.Html
+type InboundAuthenticatorAPI = "register" :> Capture "uuid" String :> Get '[HTML] B.Html
 
-type UpdateFormAPI = "updateForm" :> ReqBody '[FormUrlEncoded] [(String,String)] :> Post '[HTML] B.Html
+type UpdateFormAPI = "register" :> Capture "uuid" String :> ReqBody '[FormUrlEncoded] [(String,String)] :> Post '[HTML] B.Html
 
 -- QUESTION/DISCUSSION: note how when updating this API type, eg to
 -- add an endpoint or to change an endpoint type, that there will be
@@ -141,17 +141,17 @@ handleInbound auth = do
           B.body $ do
             B.h1 title
             B.p "debug: handleInbound"
-            regformHtml view
+            regformHtml auth view
 
   liftIO $ putStrLn "end of req"
 
   return outputHtml
 
-regformHtml :: DF.View B.Html -> B.Html
-regformHtml view = do
+regformHtml :: String -> DF.View B.Html -> B.Html
+regformHtml auth view = do
             B.p "Please fill out this registration form. We have put information that we know already into the form, but please check and correct those if that information is wrong."
             -- QUESTION/DISCUSSION: type_ has to have a different name with an underscore because type is a reserved word.
-            B.form ! BA.action "/updateForm"
+            B.form ! BA.action ("/register/" <> (fromString auth))
                    ! BA.method "post"
              $ do
 
@@ -200,20 +200,22 @@ servantPathEnv reqBody ty = do
   return env
 
 
-handleUpdateForm :: [(String,String)] -> Handler B.Html
-handleUpdateForm reqBody = do
+handleUpdateForm :: String -> [(String,String)] -> Handler B.Html
+handleUpdateForm auth reqBody = do
 -- TODO: factor
   liftIO $ putStrLn "opening db"
   conn <- liftIO $ PG.connectPostgreSQL "user='postgres'"  -- TODO: this shoudl be in a bracket with close to handle exceptions happening before the close that kill this handler but don't kill the whole process.
 
   liftIO $ putStrLn $ "Post params: " ++ show reqBody
 
+{-
   -- QUESTION/DISCUSSION this is an ugly way to find the actual DB
   -- record in so much as we have to know about the way in which
   -- digestive-functor names its fields.
 
   let (Just auth) = lookup "Registration.authenticator" reqBody
   liftIO $ putStrLn $ "Read authenticator from POST: " ++ auth
+-}
 
   entry :: [Registration] <- liftIO $ query conn "SELECT authenticator, state, modified, firstname, lastname, dob FROM regmgr_attendee WHERE authenticator=?" [auth]
 
@@ -251,7 +253,7 @@ handleUpdateForm reqBody = do
             B.body $ do
               B.h1 title
               B.p "debug: handleUpdateForm - there are errors"
-              regformHtml view
+              regformHtml auth view
                
   return outputHtml
 
