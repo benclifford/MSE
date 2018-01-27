@@ -236,11 +236,24 @@ handleUpdateForm auth reqBody = do
         -- write out 'val' to the database
         conn <- liftIO $ PG.connectPostgreSQL "user='postgres'" 
 
-        -- liftIO $ (putStrLn . show) =<< formatQuery conn "UPDATE regmgr_attendee SET authenticator = ?, state = ?, modified = ?, firstname = ?, lastname= ?, dob=? WHERE authenticator = ?" (val PG.:. [auth]) -- holy bracketing
-        sqlres <- liftIO $ execute conn "UPDATE regmgr_attendee SET authenticator = ?, state = ?, modified = ?, firstname = ?, lastname= ?, dob=? WHERE authenticator = ?" (val PG.:. [auth])
+        -- we'll ask the database for the current time, rather than
+        -- caring about local system time.
+        [[newDBTime]] :: [[PG.ZonedTimestamp]] <- liftIO $ query conn "SELECT NOW()" ()
+ 
+        liftIO $ putStrLn $ "new SQL database time: " ++ show newDBTime
+       
+        let oldDBTime = modified val 
+        liftIO $ putStrLn $ "old SQL database time: " ++ show oldDBTime
+        let val' = val { modified = newDBTime }
 
+        -- liftIO $ (putStrLn . show) =<< formatQuery conn "UPDATE regmgr_attendee SET authenticator = ?, state = ?, modified = ?, firstname = ?, lastname= ?, dob=? WHERE authenticator = ?" (val PG.:. [auth]) -- holy bracketing
+        sqlres <- liftIO $ execute conn "UPDATE regmgr_attendee SET authenticator = ?, state = ?, modified = ?, firstname = ?, lastname= ?, dob=? WHERE authenticator = ? AND modified = ?" (val' PG.:. (auth, oldDBTime))
 
         liftIO $ putStrLn $ "SQL UPDATE returned: " ++ (show sqlres)
+
+        -- if SQL res is 0, then the update failed
+        -- for example, if the row has disappeared, or if someone else
+        -- modified the record in a different way.
 
         -- entry :: [Registration] <- liftIO $ query conn "SELECT authenticator, state, modified, firstname, lastname, dob FROM regmgr_attendee WHERE authenticator=?" [auth]
 
@@ -305,8 +318,8 @@ instance ToRow Registration
 registrationDigestiveForm :: Monad m => Registration -> DF.Form B.Html m Registration
 registrationDigestiveForm init = Registration
   <$> "authenticator" .: DF.string (Just $ authenticator init) -- TODO: a validator on this should check that the form value matches up with the value in init - which will, for example, have been read from the db
-  <*> "state" .: DF.string (Just $ state init) -- TODO: a validator on this should check that the form value matches up with the value in init, which will for example, have come from the DB. Or is perhaps also nullable to allow creation of entries.
-  <*> "modified" .: ((const (modified init)) <$> (DF.string (Just $ show $ modified init))) -- BUG: ignores modified time from client!
+  <*> "state" .: DF.string (Just $ state init) -- TODO: a validator on this should check that the form value matches up with the value in init, which will for example, have come from the DB. Or is perhaps also nullable to allow creation of entries. Or perhaps to check we are doing the right kind of state progression so that record can't be moved into wrong state by rogue HTTP request?
+  <*> "modified" .: (read <$> (DF.string (Just $ show $ modified init))) -- BUG: ignores modified time from client! which means OCC is broken as we always default to the latest version and so mostly don't ever hit a conflict. And the problem here is that we need to serialise it out to a form field and then parse it back in later, which is troublesome.
   <*> "firstname" .: DF.string (Just $ firstname init)
   <*> "lastname" .: DF.string (Just $ lastname init)
   <*> "dob" .: nonEmptyString (Just $ dob init)
