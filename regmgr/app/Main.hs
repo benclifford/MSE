@@ -6,6 +6,13 @@
 -- blaze tutorial here:
 -- https://jaspervdj.be/blaze/tutorial.html
 
+-- https://ocharles.org.uk/blog/posts/2012-12-02-digestive-functors.html
+-- ocharles talks about using digestive-functors with blaze
+
+-- although I might actually want to end up with heist so that the
+-- HTML can be edited in template form by other people in a more
+-- familiar fashion?
+
 module Main where
 
 -- QUESTION/DISCUSSION: rules for imports that I should follow but don't:
@@ -45,11 +52,19 @@ type HTMLPingAPI =
 
 type InboundAuthenticatorAPI = "inbound" :> Capture "uuid" String :> Get '[HTML] B.Html
 
+type UpdateFormAPI = "updateForm" :> ReqBody '[FormUrlEncoded] [(String,String)] :> Post '[HTML] B.Html
+
+-- QUESTION/DISCUSSION: note how when updating this API type, eg to
+-- add an endpoint or to change an endpoint type, that there will be
+-- a type error if we dont' also update server1 to handle the change
+-- appropriately. This is part of the niceness of staticly typed APIs.
 type API = PingAPI :<|> InboundAuthenticatorAPI
       :<|> HTMLPingAPI
+      :<|> UpdateFormAPI
 
 server1 :: Server API
 server1 = handlePing :<|> handleInbound :<|> handleHTMLPing
+  :<|> handleUpdateForm
 
 handlePing :: Handler String
 handlePing = return "PONG"
@@ -111,7 +126,7 @@ handleInbound authenticator = do
             B.h1 title
             B.p "Please fill out this registration form. We have put information that we know already into the form, but please check and correct those if that information is wrong."
             -- QUESTION/DISCUSSION: type_ has to have a different name with an underscore because type is a reserved word.
-            B.form ! BA.action "/updateform"
+            B.form ! BA.action "/updateForm"
                    ! BA.method "post"
              $ do
 
@@ -157,8 +172,9 @@ handleInbound authenticator = do
 
   return editableHtml
 
-  -- return $ "authenticator: " <> authenticator ++ "/ " ++ show entry
-
+handleUpdateForm :: [(String,String)] -> Handler B.Html
+handleUpdateForm reqbody = 
+  return $ B.toHtml $ "handleFormFilled stub TODO NOTIMPL BENC: req body is " ++ show reqbody
 
 regmgrAPI :: Proxy API
 regmgrAPI = Proxy
@@ -172,3 +188,6 @@ main = do
   run 8080 app
 
   putStrLn "regmgr end"
+
+
+
