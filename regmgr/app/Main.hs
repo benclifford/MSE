@@ -24,6 +24,8 @@ module Main where
 -- Generally operators will need to be explicitly imported so that
 -- they can be nicely used as operators without a package name.
 
+import Control.Monad (when)
+
 import Control.Monad.IO.Class (liftIO)
 
 import qualified Data.Text as T
@@ -156,6 +158,7 @@ regformHtml auth view editable = do
             if editable
               then B.p "Please fill out this registration form. We have put information that we know already into the form, but please check and correct those if that information is wrong."
               else B.p "This is the information held for this attendee. Please contact your section leader if any of this information is incorrect."
+
             -- QUESTION/DISCUSSION: type_ has to have a different name with an underscore because type is a reserved word.
             B.form ! BA.action ("/register/" <> (fromString auth))
                    ! BA.method "post"
@@ -165,13 +168,13 @@ regformHtml auth view editable = do
               DB.inputHidden "authenticator" view
               DB.inputHidden "modified" view
 
-              textInputParagraph "firstname" view "First name"
-              textInputParagraph "lastname" view "Family name"
+              textInputParagraph editable "firstname" view "First name"
+              textInputParagraph editable "lastname" view "Family name"
 
               -- QUESTION/DISCUSSION: this could be a date picker on the client side in javascript?
-              textInputParagraph "dob" view "Date of Birth"
+              textInputParagraph editable "dob" view "Date of Birth"
 
-              DB.inputSubmit "Register for event"
+              when editable $ DB.inputSubmit "Register for event"
             B.hr
 {-
             B.h2 "Internal debugging information"
@@ -179,11 +182,32 @@ regformHtml auth view editable = do
             B.p $ "State: " <> B.toHtml (state val)
 -}
 
-textInputParagraph fieldName view description = 
-              B.p $ do
+textInputParagraph editable fieldName view description = 
+  if editable
+    then      B.p $ do
                 DB.label fieldName view description
+                ": "
                 DB.errorList fieldName view
                 DB.inputText fieldName view
+    else B.p $ do
+                DB.label fieldName view description
+                ": "
+                DB.errorList fieldName view
+                readonlyInputText fieldName view
+
+-- | loosely based on inputText source
+readonlyInputText :: T.Text -> DF.View v -> B.Html
+readonlyInputText ref view = B.toHtml $ DF.fieldInputText ref view
+
+{-
+inputText ref view = H.input
+    ! A.type_ "text"
+    ! A.id    (H.toValue ref')
+    ! A.name  (H.toValue ref')
+    ! A.value (H.toValue $ fieldInputText ref view)
+  where
+    ref' = absoluteRef ref view
+-}
 
 
 -- | [(String, String)] is a req body deserialisation - that might not
