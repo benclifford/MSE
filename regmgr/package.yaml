@@ -35,9 +35,11 @@ executables:
     - -with-rtsopts=-N
     dependencies:
     - regmgr
+    - blaze-html
     - postgresql-simple
     - servant
     - servant-server
+    - servant-blaze
     - warp
 
 tests:

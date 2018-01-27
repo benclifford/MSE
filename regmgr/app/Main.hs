@@ -5,6 +5,7 @@
 
 module Main where
 
+
 import Control.Monad.IO.Class (liftIO)
 
 import Database.PostgreSQL.Simple as PG
@@ -14,21 +15,37 @@ import Network.Wai.Handler.Warp (run)
 
 import Servant
 import Servant.API
+import Servant.HTML.Blaze as SB
+
+import qualified Text.Blaze.Html5 as B
 
 import Lib
 
 type PingAPI =
   "ping" :> Get '[PlainText] String
 
+type HTMLPingAPI =
+  "htmlping" :> Get '[SB.HTML] B.Html
+
 type InboundAuthenticatorAPI = "inbound" :> Capture "uuid" String :> Get '[PlainText] String
 
 type API = PingAPI :<|> InboundAuthenticatorAPI
+      :<|> HTMLPingAPI
 
 server1 :: Server API
-server1 = handlePing :<|> handleInbound
+server1 = handlePing :<|> handleInbound :<|> handleHTMLPing
 
 handlePing :: Handler String
 handlePing = return "PONG"
+
+handleHTMLPing :: Handler B.Html
+handleHTMLPing = return $ B.docTypeHtml $ do
+  B.head $ do
+    B.title "regmgr HTML ping response page"
+  B.body $ do
+    B.h1 "Ping response"
+    B.p "ok"
+
 
 handleInbound :: String -> Handler String
 handleInbound authenticator = do
