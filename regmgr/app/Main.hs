@@ -259,13 +259,6 @@ handleUpdateForm auth reqBody = do
 
         liftIO $ putStrLn $ "SQL UPDATE returned: " ++ (show sqlres)
 
-        -- if SQL res is 0, then the update failed
-        -- for example, if the row has disappeared, or if someone else
-        -- modified the record in a different way.
-
-        -- entry :: [Registration] <- liftIO $ query conn "SELECT authenticator, state, modified, firstname, lastname, dob FROM regmgr_attendee WHERE authenticator=?" [auth]
-
-        -- TODO: beware OCC modification bugs here
         liftIO $ close conn
 
         if sqlres == 1
