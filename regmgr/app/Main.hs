@@ -134,6 +134,8 @@ handleInbound auth = do
 
   view :: DF.View B.Html <- DF.getForm "Registration" (registrationDigestiveForm val)
 
+  let editable = entryEditable val
+
   let outputHtml =
         B.docTypeHtml $ do
           B.head $ do
@@ -141,15 +143,19 @@ handleInbound auth = do
           B.body $ do
             B.h1 title
             B.p "debug: handleInbound"
-            regformHtml auth view
+            regformHtml auth view editable
 
   liftIO $ putStrLn "end of req"
 
   return outputHtml
 
-regformHtml :: String -> DF.View B.Html -> B.Html
-regformHtml auth view = do
-            B.p "Please fill out this registration form. We have put information that we know already into the form, but please check and correct those if that information is wrong."
+-- | generates an HTML view of this form, which may be editable
+--   or fixed text.
+regformHtml :: String -> DF.View B.Html -> Bool -> B.Html
+regformHtml auth view editable = do
+            if editable
+              then B.p "Please fill out this registration form. We have put information that we know already into the form, but please check and correct those if that information is wrong."
+              else B.p "This is the information held for this attendee. Please contact your section leader if any of this information is incorrect."
             -- QUESTION/DISCUSSION: type_ has to have a different name with an underscore because type is a reserved word.
             B.form ! BA.action ("/register/" <> (fromString auth))
                    ! BA.method "post"
@@ -226,6 +232,8 @@ handleUpdateForm auth reqBody = do
   liftIO $ PG.close conn 
   let title = "Registration for " <> B.toHtml (firstname val) <> " " <> B.toHtml (lastname val)
 
+  let editable = entryEditable val
+
 -- TODO: end factor
   f <- DF.postForm "Registration" (registrationDigestiveForm val) (servantPathEnv reqBody)
 
@@ -244,7 +252,7 @@ handleUpdateForm auth reqBody = do
        
         let oldDBTime = modified val 
         liftIO $ putStrLn $ "old SQL database time: " ++ show oldDBTime
-        let val' = val { modified = newDBTime }
+        let val' = val { modified = newDBTime, state = "C" }
 
         -- liftIO $ (putStrLn . show) =<< formatQuery conn "UPDATE regmgr_attendee SET authenticator = ?, state = ?, modified = ?, firstname = ?, lastname= ?, dob=? WHERE authenticator = ?" (val PG.:. [auth]) -- holy bracketing
         sqlres <- liftIO $ execute conn "UPDATE regmgr_attendee SET authenticator = ?, state = ?, modified = ?, firstname = ?, lastname= ?, dob=? WHERE authenticator = ? AND modified = ?" (val' PG.:. (auth, oldDBTime))
@@ -292,7 +300,7 @@ handleUpdateForm auth reqBody = do
             B.body $ do
               B.h1 title
               B.p "debug: handleUpdateForm - there are errors"
-              regformHtml auth view
+              regformHtml auth view editable
                
   return outputHtml
 
@@ -339,4 +347,8 @@ nonEmptyString :: (IsString v, Monoid v, Monad m) => Maybe String -> DF.Form v m
 nonEmptyString def = 
     (DF.check "This field must not be empty" (/= ""))
   $ DF.string def
+
+
+entryEditable :: Registration -> Bool
+entryEditable registration = state registration `elem` ["N", "I"]
 
