@@ -230,9 +230,24 @@ handleUpdateForm auth reqBody = do
   f <- DF.postForm "Registration" (registrationDigestiveForm val) (servantPathEnv reqBody)
 
   outputHtml <- case f of
-    (view, Just val) -> return $
+    (view, Just val) -> do
+
+        liftIO $ putStrLn "Updating DB"
+        -- write out 'val' to the database
+        conn <- liftIO $ PG.connectPostgreSQL "user='postgres'" 
+
+        -- liftIO $ (putStrLn . show) =<< formatQuery conn "UPDATE regmgr_attendee SET authenticator = ?, state = ?, modified = ?, firstname = ?, lastname= ?, dob=? WHERE authenticator = ?" (val PG.:. [auth]) -- holy bracketing
+        sqlres <- liftIO $ execute conn "UPDATE regmgr_attendee SET authenticator = ?, state = ?, modified = ?, firstname = ?, lastname= ?, dob=? WHERE authenticator = ?" (val PG.:. [auth])
 
 
+        liftIO $ putStrLn $ "SQL UPDATE returned: " ++ (show sqlres)
+
+        -- entry :: [Registration] <- liftIO $ query conn "SELECT authenticator, state, modified, firstname, lastname, dob FROM regmgr_attendee WHERE authenticator=?" [auth]
+
+        -- TODO: beware OCC modification bugs here
+        liftIO $ close conn
+
+        return $
           B.docTypeHtml $ do
             B.head $ do
               B.title title
@@ -284,6 +299,7 @@ data Registration = Registration {
 
 
 instance FromRow Registration
+instance ToRow Registration
 
 -- | This is the registration form as a Digestive Functor form
 registrationDigestiveForm :: Monad m => Registration -> DF.Form B.Html m Registration
