@@ -2,6 +2,7 @@
 {-# Language TypeOperators #-}
 {-# Language OverloadedStrings #-}
 {-# Language ScopedTypeVariables #-}
+{-# Language DeriveGeneric #-}
 
 -- blaze tutorial here:
 -- https://jaspervdj.be/blaze/tutorial.html
@@ -31,6 +32,8 @@ import Data.Monoid ( (<>) )
 
 import Database.PostgreSQL.Simple as PG
 import Database.PostgreSQL.Simple.Time as PG
+
+import GHC.Generics (Generic)
 
 import Network.Wai.Handler.Warp (run)
 
@@ -79,8 +82,8 @@ handleHTMLPing = return $ B.docTypeHtml $ do
 
 
 handleInbound :: String -> Handler B.Html
-handleInbound authenticator = do
-  liftIO $ putStrLn $ "handleInbound called, authenticator=" ++ authenticator
+handleInbound auth = do
+  liftIO $ putStrLn $ "handleInbound called, authenticator=" ++ auth
 
   -- we can switch in different ways here:
   -- * if the UUID does not exist or it exists more than once,
@@ -107,16 +110,16 @@ handleInbound authenticator = do
   liftIO $ putStrLn "opening db"
   conn <- liftIO $ PG.connectPostgreSQL "user='postgres'" 
 
-  entry :: [(Integer, String, String, PG.ZonedTimestamp, String, String, String)] <- liftIO $ query conn "SELECT * FROM regmgr_attendee WHERE authenticator=?" [authenticator]
+  entry :: [RegistrationForm] <- liftIO $ query conn "SELECT authenticator, state, modified, firstname, lastname, dob FROM regmgr_attendee WHERE authenticator=?" [auth]
 
-  let (n, authenticator, state, modified, firstname, lastname, dob) = head entry -- assumes exactly one entry matches this authenticator. BUG: there might be none;  there might be more than 1 but that is statically guaranteed not to happen in the SQL schema (so checked by the SQL type system, not the Haskell type system) - so that's an 'error "impossible"' case.
+  let val = head entry -- assumes exactly one entry matches this authenticator. BUG: there might be none;  there might be more than 1 but that is statically guaranteed not to happen in the SQL schema (so checked by the SQL type system, not the Haskell type system) - so that's an 'error "impossible"' case.
 
   liftIO $ putStrLn $ "got sql result: " ++ show entry
 
   liftIO $ putStrLn "closing db"
   liftIO $ PG.close conn 
 
-  let title = "Registration for " <> B.toHtml firstname <> " " <> B.toHtml lastname
+  let title = "Registration for " <> B.toHtml (firstname val) <> " " <> B.toHtml (lastname val)
 
   let editableHtml =
         B.docTypeHtml $ do
@@ -134,39 +137,38 @@ handleInbound authenticator = do
               B.input
                   ! BA.type_ "hidden"
                   ! BA.name "authenticator"
-                  ! BA.value (fromString authenticator)
+                  ! BA.value (fromString (authenticator val))
               B.input
                   ! BA.type_ "hidden"
                   ! BA.name "modified"
-                  ! BA.value (fromString (show modified)) -- might need a better data format to be able to deserialise it elsewhere.
+                  ! BA.value (fromString (show (modified val))) -- might need a better data format to be able to deserialise it elsewhere.
 
               B.p $ do
-                "Family name: "
+                "First name: "
                 B.input
                   ! BA.type_ "text" 
                   ! BA.name "firstname" 
-                  ! BA.value (fromString firstname)
+                  ! BA.value (fromString (firstname val))
               B.p $ do
                 "Family name: " 
                 B.input
                   ! BA.type_ "text"
                   ! BA.name "lastname"
-                  ! BA.value (fromString lastname)
+                  ! BA.value (fromString (lastname val))
               -- QUESTION/DISCUSSION: this could be a date picker on the client side in javascript?
               B.p $ do
                 "Date of birth: "
                 B.input
                   ! BA.type_ "text"
                   ! BA.name "dob"
-                  ! BA.value (fromString dob)
+                  ! BA.value (fromString (dob val))
               B.input
                 ! BA.type_ "submit"
                 ! BA.value "Register for event"
             B.hr
             B.h2 "Internal debugging information"
-            B.p $ "Last modified: " <> B.toHtml (show modified)
-            B.p $ "State: " <> B.toHtml state
-            B.p $ "Record number: " <> B.toHtml n
+            B.p $ "Last modified: " <> B.toHtml (show (modified val))
+            B.p $ "State: " <> B.toHtml (state val)
 
   liftIO $ putStrLn "end of req"
 
@@ -190,4 +192,16 @@ main = do
   putStrLn "regmgr end"
 
 
+-- | This models the registration form and could have type classes
+--   attached for conversions to/from different types.
+data RegistrationForm = RegistrationForm {
+    authenticator :: String,
+    state :: String,
+    modified :: PG.ZonedTimestamp,
+    firstname :: String,
+    lastname :: String,
+    dob :: String
+  } deriving (Generic, Show)
 
+
+instance FromRow RegistrationForm
