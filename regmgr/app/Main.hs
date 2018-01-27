@@ -26,7 +26,8 @@ module Main where
 
 import Control.Monad.IO.Class (liftIO)
 
-import Data.String (fromString)
+import qualified Data.Text as T
+import Data.String (fromString, IsString)
 
 import Data.Monoid ( (<>) )
 
@@ -45,6 +46,11 @@ import qualified Text.Blaze.Html5 as B
 import Text.Blaze.Html5 ( (!) )
 import qualified Text.Blaze.Html5.Attributes as BA
 
+import qualified Text.Digestive as DF
+import Text.Digestive ( (.:) )
+
+import Text.Digestive.Blaze.Html5 as DB
+
 import Lib
 
 type PingAPI =
@@ -53,6 +59,11 @@ type PingAPI =
 type HTMLPingAPI =
   "htmlping" :> Get '[SB.HTML] B.Html
 
+
+-- TODO: the base URLs for this and updateFormAPI can be the same with
+-- one being for GET and one being for POST.
+-- That way, it is still bookmarkable, and we can pass the UUID in the
+-- URL both times rather than extracting from form data
 type InboundAuthenticatorAPI = "inbound" :> Capture "uuid" String :> Get '[HTML] B.Html
 
 type UpdateFormAPI = "updateForm" :> ReqBody '[FormUrlEncoded] [(String,String)] :> Post '[HTML] B.Html
@@ -110,7 +121,7 @@ handleInbound auth = do
   liftIO $ putStrLn "opening db"
   conn <- liftIO $ PG.connectPostgreSQL "user='postgres'" 
 
-  entry :: [RegistrationForm] <- liftIO $ query conn "SELECT authenticator, state, modified, firstname, lastname, dob FROM regmgr_attendee WHERE authenticator=?" [auth]
+  entry :: [Registration] <- liftIO $ query conn "SELECT authenticator, state, modified, firstname, lastname, dob FROM regmgr_attendee WHERE authenticator=?" [auth]
 
   let val = head entry -- assumes exactly one entry matches this authenticator. BUG: there might be none;  there might be more than 1 but that is statically guaranteed not to happen in the SQL schema (so checked by the SQL type system, not the Haskell type system) - so that's an 'error "impossible"' case.
 
@@ -121,12 +132,23 @@ handleInbound auth = do
 
   let title = "Registration for " <> B.toHtml (firstname val) <> " " <> B.toHtml (lastname val)
 
-  let editableHtml =
+  view :: DF.View B.Html <- DF.getForm "Registration" (registrationDigestiveForm val)
+
+  let outputHtml =
         B.docTypeHtml $ do
           B.head $ do
             B.title title
           B.body $ do
             B.h1 title
+            B.p "debug: handleInbound"
+            regformHtml view
+
+  liftIO $ putStrLn "end of req"
+
+  return outputHtml
+
+regformHtml :: DF.View B.Html -> B.Html
+regformHtml view = do
             B.p "Please fill out this registration form. We have put information that we know already into the form, but please check and correct those if that information is wrong."
             -- QUESTION/DISCUSSION: type_ has to have a different name with an underscore because type is a reserved word.
             B.form ! BA.action "/updateForm"
@@ -134,49 +156,104 @@ handleInbound auth = do
              $ do
 
               -- QUESTION/DISCUSSION: the authenticator lets us find the relevant record (it's a combo of identifier and authenticator...) and the modified value lets us do OCC transaction handling.
-              B.input
-                  ! BA.type_ "hidden"
-                  ! BA.name "authenticator"
-                  ! BA.value (fromString (authenticator val))
-              B.input
-                  ! BA.type_ "hidden"
-                  ! BA.name "modified"
-                  ! BA.value (fromString (show (modified val))) -- might need a better data format to be able to deserialise it elsewhere.
+              DB.inputHidden "authenticator" view
+              DB.inputHidden "modified" view
 
-              B.p $ do
-                "First name: "
-                B.input
-                  ! BA.type_ "text" 
-                  ! BA.name "firstname" 
-                  ! BA.value (fromString (firstname val))
-              B.p $ do
-                "Family name: " 
-                B.input
-                  ! BA.type_ "text"
-                  ! BA.name "lastname"
-                  ! BA.value (fromString (lastname val))
+              textInputParagraph "firstname" view "First name"
+              textInputParagraph "lastname" view "Family name"
+
               -- QUESTION/DISCUSSION: this could be a date picker on the client side in javascript?
-              B.p $ do
-                "Date of birth: "
-                B.input
-                  ! BA.type_ "text"
-                  ! BA.name "dob"
-                  ! BA.value (fromString (dob val))
-              B.input
-                ! BA.type_ "submit"
-                ! BA.value "Register for event"
+              textInputParagraph "dob" view "Date of Birth"
+
+              DB.inputSubmit "Register for event"
             B.hr
+{-
             B.h2 "Internal debugging information"
             B.p $ "Last modified: " <> B.toHtml (show (modified val))
             B.p $ "State: " <> B.toHtml (state val)
+-}
 
-  liftIO $ putStrLn "end of req"
+textInputParagraph fieldName view description = 
+              B.p $ do
+                DB.label fieldName view description
+                DB.errorList fieldName view
+                DB.inputText fieldName view
 
-  return editableHtml
+
+-- | [(String, String)] is a req body deserialisation - that might not
+--   be the best type - I think servant can deserialise to various
+--   forms (so potentially could deserialise directly to an Env
+--   without with helper being explicit... instead the same helper
+--   code would go in typeclass impl?)
+servantPathEnv :: Monad m => [(String, String)] -> DF.FormEncType -> m (DF.Env m)
+servantPathEnv reqBody ty = do
+
+  let env :: Monad n => DF.Env n
+      env path = do
+        let pathAsString = (T.unpack . DF.fromPath) path
+        let v' = lookup pathAsString reqBody -- BUG? might be multiple values? the digestive-functor docs suggest some input types (selectors?) do that somehow?
+        case v' of Nothing -> return []
+                   Just v -> return [DF.TextInput $ T.pack v]
+        -- This case could be a maybeToList then a map T.pack?
+        -- is that clearer or less clear?
+
+  return env
+
 
 handleUpdateForm :: [(String,String)] -> Handler B.Html
-handleUpdateForm reqbody = 
-  return $ B.toHtml $ "handleFormFilled stub TODO NOTIMPL BENC: req body is " ++ show reqbody
+handleUpdateForm reqBody = do
+-- TODO: factor
+  liftIO $ putStrLn "opening db"
+  conn <- liftIO $ PG.connectPostgreSQL "user='postgres'"  -- TODO: this shoudl be in a bracket with close to handle exceptions happening before the close that kill this handler but don't kill the whole process.
+
+  liftIO $ putStrLn $ "Post params: " ++ show reqBody
+
+  -- QUESTION/DISCUSSION this is an ugly way to find the actual DB
+  -- record in so much as we have to know about the way in which
+  -- digestive-functor names its fields.
+
+  let (Just auth) = lookup "Registration.authenticator" reqBody
+  liftIO $ putStrLn $ "Read authenticator from POST: " ++ auth
+
+  entry :: [Registration] <- liftIO $ query conn "SELECT authenticator, state, modified, firstname, lastname, dob FROM regmgr_attendee WHERE authenticator=?" [auth]
+
+  let val = head entry -- assumes exactly one entry matches this authenticator. BUG: there might be none;  there might be more than 1 but that is statically guaranteed not to happen in the SQL schema (so checked by the SQL type system, not the Haskell type system) - so that's an 'error "impossible"' case.
+
+  liftIO $ putStrLn $ "got sql result: " ++ show entry
+  liftIO $ putStrLn "closing db"
+  liftIO $ PG.close conn 
+  let title = "Registration for " <> B.toHtml (firstname val) <> " " <> B.toHtml (lastname val)
+
+-- TODO: end factor
+  f <- DF.postForm "Registration" (registrationDigestiveForm val) (servantPathEnv reqBody)
+
+  outputHtml <- case f of
+    (view, Just val) -> return $
+
+
+          B.docTypeHtml $ do
+            B.head $ do
+              B.title title
+            B.body $ do
+              B.h1 title
+              B.p "debug: handleUpdateForm - there are no errors"
+              B.p "next steps: print PDF (link here), sign and give to a leader with payment"
+              B.p $ B.toHtml $ show val
+
+    -- TODO: this would be better implemented as a loop-like construct
+    -- which only ever spits out the correct value and otherwise
+    -- shortcircuits execution and provides the user with another
+    -- chance to edit?
+    (view, Nothing) -> return $
+          B.docTypeHtml $ do
+            B.head $ do
+              B.title title
+            B.body $ do
+              B.h1 title
+              B.p "debug: handleUpdateForm - there are errors"
+              regformHtml view
+               
+  return outputHtml
 
 regmgrAPI :: Proxy API
 regmgrAPI = Proxy
@@ -194,14 +271,30 @@ main = do
 
 -- | This models the registration form and could have type classes
 --   attached for conversions to/from different types.
-data RegistrationForm = RegistrationForm {
+data Registration = Registration {
     authenticator :: String,
     state :: String,
-    modified :: PG.ZonedTimestamp,
+    modified :: PG.ZonedTimestamp, -- TODO: debate with self about whether modified should be in the Registration or not as it isn't a traditional "editable" field but instead metadata about the record (like the primary key)
     firstname :: String,
     lastname :: String,
     dob :: String
   } deriving (Generic, Show)
 
 
-instance FromRow RegistrationForm
+instance FromRow Registration
+
+-- | This is the registration form as a Digestive Functor form
+registrationDigestiveForm :: Monad m => Registration -> DF.Form B.Html m Registration
+registrationDigestiveForm init = Registration
+  <$> "authenticator" .: DF.string (Just $ authenticator init) -- TODO: a validator on this should check that the form value matches up with the value in init - which will, for example, have been read from the db
+  <*> "state" .: DF.string (Just $ state init) -- TODO: a validator on this should check that the form value matches up with the value in init, which will for example, have come from the DB. Or is perhaps also nullable to allow creation of entries.
+  <*> "modified" .: ((const (modified init)) <$> (DF.string (Just $ show $ modified init))) -- BUG: ignores modified time from client!
+  <*> "firstname" .: DF.string (Just $ firstname init)
+  <*> "lastname" .: DF.string (Just $ lastname init)
+  <*> "dob" .: nonEmptyString (Just $ dob init)
+
+nonEmptyString :: (IsString v, Monoid v, Monad m) => Maybe String -> DF.Form v m String
+nonEmptyString def = 
+    (DF.check "This field must not be empty" (/= ""))
+  $ DF.string def
+

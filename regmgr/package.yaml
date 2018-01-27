@@ -36,10 +36,13 @@ executables:
     dependencies:
     - regmgr
     - blaze-html
+    - digestive-functors
+    - digestive-functors-blaze
     - postgresql-simple
     - servant
     - servant-server
     - servant-blaze
+    - text
     - warp
 
 tests:
