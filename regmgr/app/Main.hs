@@ -260,15 +260,26 @@ handleUpdateForm auth reqBody = do
         -- TODO: beware OCC modification bugs here
         liftIO $ close conn
 
-        return $
-          B.docTypeHtml $ do
-            B.head $ do
-              B.title title
-            B.body $ do
-              B.h1 title
-              B.p "debug: handleUpdateForm - there are no errors"
-              B.p "next steps: print PDF (link here), sign and give to a leader with payment"
-              B.p $ B.toHtml $ show val
+        if sqlres == 1
+          then return $ -- success
+            B.docTypeHtml $ do
+              B.head $ do
+                B.title title
+              B.body $ do
+                B.h1 title
+                B.p "debug: handleUpdateForm - there are no errors"
+                B.p "next steps: print PDF (link here), sign and give to a leader with payment"
+                B.p $ B.toHtml $ show val
+          else -- failure due to database error
+            return $ B.docTypeHtml $ do
+              B.head $ do
+                B.title title
+              B.body $ do
+                B.h1 title
+                B.p "debug: handleUpdateForm - SQL update did not update any rows, but no errors in digestive-functor form"
+                B.p "There was a problem submitting your form - perhaps you have already completed the form in another tab, or someone else has edited the form at the same time"
+                B.p "Please reload the link that you were sent and start again"
+                B.p "Sorry"
 
     -- TODO: this would be better implemented as a loop-like construct
     -- which only ever spits out the correct value and otherwise
