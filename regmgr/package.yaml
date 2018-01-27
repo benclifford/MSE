@@ -35,6 +35,7 @@ executables:
     - -with-rtsopts=-N
     dependencies:
     - regmgr
+    - postgresql-simple
     - servant
     - servant-server
     - warp

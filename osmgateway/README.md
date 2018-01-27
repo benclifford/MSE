@@ -9,3 +9,10 @@ in addition to stack:
 
   psql --user=postgres < tables.sql
 
+# regmgr
+
+  Note that this will clear the database, losing real data such as
+  authenticator tokens handed to users, and form entries.
+
+  psql --user=postgres < tables.sql
+
