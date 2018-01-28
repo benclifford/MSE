@@ -1,17 +1,23 @@
 \documentclass[a4paper]{memoir}
 
-\usepackage[top=1cm,bottom=1cm, right=1cm, left=1cm]{geometry}
+\usepackage[top=1cm,bottom=1cm, right=1cm, left=3cm]{geometry}
+
+\setlength{\parindent}{0ex}
+
+\pagestyle{empty}
 
 \begin{document}
 
+\textbf{\huge +lastname+, +firstname+}
+\hfill
+\textbf{\huge ADULT}
+
 Adult Permission Form and Medical Information
+
+1st Merrow Group Camp / TODO-Location / TODO-Date
 
 PLEASE DO NOT AMEND THIS FORM. IF DETAILS ARE WRONG PLEASE CONTACT
 YOUR SECTION LEADER.
-
-1st Merrow Group Camp
-
-TODO-Location / TODO-Date
 
 \hrulefill
 
