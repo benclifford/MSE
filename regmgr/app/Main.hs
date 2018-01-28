@@ -32,6 +32,7 @@ module Main where
 -- Generally operators will need to be explicitly imported so that
 -- they can be nicely used as operators without a package name.
 
+import Control.Exception (bracket)
 import Control.Monad (when)
 
 import Control.Monad.IO.Class (liftIO, MonadIO)
@@ -708,17 +709,17 @@ handleAdminStatic = return $ do
 
 -- Abstracted database handling
 
--- TODO: bracket
 withDB :: MonadIO m => (PG.Connection -> IO a) -> m a
 withDB act = liftIO $ do
   putStrLn "withDB: opening db"
-  conn <- PG.connectPostgreSQL "user='postgres'" 
 
-  v <- act conn
-
-  putStrLn "withDB: closing db"
-  PG.close conn 
-
-  return v
-
+  bracket  
+    open
+    close
+    act
+ where
+   open = PG.connectPostgreSQL "user='postgres'"
+   close conn = do
+     putStrLn "withDB: closing db"
+     PG.close conn
 
