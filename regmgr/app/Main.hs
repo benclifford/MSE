@@ -1,3 +1,5 @@
+{-# Options_GHC -Werror -W #-}
+
 {-# Language DataKinds #-}
 {-# Language TypeOperators #-}
 {-# Language OverloadedStrings #-}
@@ -53,7 +55,6 @@ import GHC.Generics (Generic)
 import Network.Wai.Handler.Warp (run)
 
 import Servant
-import Servant.API
 import Servant.HTML.Blaze as SB
 
 import Servant.CSV.Cassava as SC
@@ -68,8 +69,6 @@ import qualified Text.Digestive as DF
 import Text.Digestive ( (.:) )
 
 import Text.Digestive.Blaze.Html5 as DB
-
-import Lib
 
 
 type PingAPI =
@@ -310,7 +309,7 @@ inputText ref view = H.input
 --   without with helper being explicit... instead the same helper
 --   code would go in typeclass impl?)
 servantPathEnv :: Monad m => [(String, String)] -> DF.FormEncType -> m (DF.Env m)
-servantPathEnv reqBody ty = do
+servantPathEnv reqBody _ = do
 
   let env :: Monad n => DF.Env n
       env path = do
@@ -341,7 +340,7 @@ handleUpdateForm auth reqBody = do
   f <- DF.postForm "Registration" (registrationDigestiveForm val) (servantPathEnv reqBody)
 
   outputHtml <- case f of
-    (view, Just val) -> do
+    (_, Just val) -> do
 
         liftIO $ putStrLn "Updating DB"
         -- write out 'val' to the database
@@ -516,7 +515,7 @@ entryEditable registration = state registration `elem` ["N", "I"]
 handleUnlock :: String -> Handler B.Html
 handleUnlock auth = do
 
-  sqlres <- withDB $ \conn -> execute conn "UPDATE regmgr_attendee SET state = ? WHERE authenticator = ?" ("N" :: String, auth)
+  withDB $ \conn -> execute conn "UPDATE regmgr_attendee SET state = ? WHERE authenticator = ?" ("N" :: String, auth)
 
   handleInbound auth
 
@@ -662,7 +661,7 @@ handleInvitePost :: [(String, String)] -> Handler B.Html
 handleInvitePost reqBody = do
   f <- DF.postForm "Invitation" invitationDigestiveForm (servantPathEnv reqBody)
   case f of
-    (view, Just value) -> do
+    (_, Just value) -> do
       liftIO $ putStrLn "Invitation validated in digestive functor"
       auth <- liftIO $ invite value
       return $ do
