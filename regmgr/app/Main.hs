@@ -92,6 +92,8 @@ type InvitePostAPI = "admin" :> "invite" :> ReqBody '[FormUrlEncoded] [(String, 
 
 type CSVAPI = "admin" :> "csv" :> Get '[SC.CSV] (Headers '[Header "Content-Disposition" String] [Registration])
 
+type AdminStaticAPI = "admin" :> Get '[HTML] B.Html
+
 
 -- QUESTION/DISCUSSION: note how when updating this API type, eg to
 -- add an endpoint or to change an endpoint type, that there will be
@@ -105,6 +107,7 @@ type API = PingAPI :<|> InboundAuthenticatorAPI
       :<|> InviteGetAPI
       :<|> InvitePostAPI
       :<|> CSVAPI
+      :<|> AdminStaticAPI
 
 server1 :: Server API
 server1 = handlePing :<|> handleInbound :<|> handleHTMLPing
@@ -114,6 +117,7 @@ server1 = handlePing :<|> handleInbound :<|> handleHTMLPing
   :<|> handleInviteGet
   :<|> handleInvitePost
   :<|> handleCSV
+  :<|> handleAdminStatic
 
 handlePing :: Handler String
 handlePing = return "PONG"
@@ -742,4 +746,17 @@ instance CSV.ToField PG.ZonedTimestamp
 instance CSV.ToField Bool
   where
     toField bool = CSV.toField (show bool)
+
+
+
+
+
+handleAdminStatic :: Handler B.Html
+handleAdminStatic = return $ do
+  B.p "Admin page"
+  B.p $ (B.a ! BA.href "/admin/invite")
+      "Invite new participant"
+  B.p $ (B.a ! BA.href "/admin/csv")
+      "Download CSV of all forms, completed and not-completed"
+  
 
