@@ -11,9 +11,9 @@ YOUR SECTION LEADER.
 
 1st Merrow Group Camp
 
-Location
+TODO-Location / TODO-Date
 
-Date
+\hrulefill
 
 Particpant details:
 
@@ -25,6 +25,7 @@ Last Name: {lastname}
 Date of Birth: {dob}
 
 
+\hrulefill
 
 Emergency Contact (1st)
 
@@ -41,28 +42,31 @@ Mobile telephone number: 07000000000
 
 Emergency Contact (2nd)
 
-Name
+Name:
 
-Relationship
+Relationship:
 
-Address
+Address:
 
-Telephone number
+Telephone number:
 
-Mobile telephone number
+Mobile telephone number:
 
+\hrulefill
 
-Family Doctor 
+Family Doctor / GP
 
-Doctor Name  merrow park surgery
+Doctor Name:  XX SOME SURGERY XX
 
-Address kingfisher drive
+Address: EG. kingfisher drive
 
-Telephone number 01483 987654
+Telephone number: 01483 987654
 
-Can participant swim 50 metres? YES
+Can participant swim 50 metres? MAYBE
 
-Is participant a vegetarian? NO
+Is participant a vegetarian? MAYBE
+
+\hrulefill
 
 Medical information
 
@@ -85,7 +89,7 @@ XX
 
 XX
 
-Detais of medication and diet
+Details of medication and diet
 
 XX
 
@@ -109,6 +113,7 @@ XX
 
 XX
 
+\hrulefill
 
 Signature section
 
@@ -121,9 +126,9 @@ YOUR SECTION LEADER.
 
 Name of signer: {firstname} {lastname}
 
- XXXXXX Signature here XXXXX - non-database
+ XXXXXX Signature here XXXXX NOT STORED IN DATABASE XXXX
 
- XXXXXX Date XXXXX - non-database
+ XXXXXX Date XXXXX NOT STORED IN DATABASE XXXX
 
 
 \end{document}
