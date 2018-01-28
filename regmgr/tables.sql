@@ -15,7 +15,34 @@ CREATE TABLE regmgr_attendee (
 
     modified TIMESTAMP WITH TIME ZONE NOT NULL,
 
-    firstname TEXT,
-    lastname TEXT,
-    dob TEXT
+    firstname TEXT DEFAULT '' NOT NULL,
+    lastname TEXT DEFAULT '' NOT NULL,
+    dob TEXT DEFAULT '' NOT NULL,
+
+    ec_1_name TEXT DEFAULT '' NOT NULL,
+    ec_1_relationship TEXT DEFAULT '' NOT NULL,
+    ec_1_address TEXT DEFAULT '' NOT NULL,
+    ec_1_telephone TEXT DEFAULT '' NOT NULL,
+    ec_1_mobile TEXT DEFAULT '' NOT NULL,
+
+    ec_2_name TEXT DEFAULT '' NOT NULL,
+    ec_2_relationship TEXT DEFAULT '' NOT NULL,
+    ec_2_address TEXT DEFAULT '' NOT NULL,
+    ec_2_telephone TEXT DEFAULT '' NOT NULL,
+    ec_2_mobile TEXT DEFAULT '' NOT NULL,
+
+    doctor_name TEXT DEFAULT '' NOT NULL,
+    doctor_address TEXT DEFAULT '' NOT NULL,
+    doctor_telephone TEXT DEFAULT '' NOT NULL,
+
+    swim BOOLEAN DEFAULT FALSE NOT NULL,
+    vegetarian BOOLEAN DEFAULT FALSE NOT NULL,
+
+    tetanus_date TEXT DEFAULT '' NOT NULL,
+    diseases TEXT DEFAULT '' NOT NULL,
+    allergies TEXT DEFAULT '' NOT NULL,
+    medication_diet TEXT DEFAULT '' NOT NULL,
+    dietary_reqs TEXT DEFAULT '' NOT NULL,
+    faith_needs TEXT DEFAULT '' NOT NULL
+    
   );

@@ -130,7 +130,7 @@ handleInbound auth = do
   liftIO $ putStrLn "opening db"
   conn <- liftIO $ PG.connectPostgreSQL "user='postgres'" 
 
-  entry :: [Registration] <- liftIO $ query conn "SELECT authenticator, state, modified, firstname, lastname, dob FROM regmgr_attendee WHERE authenticator=?" [auth]
+  entry :: [Registration] <- liftIO $ query conn "SELECT authenticator, state, modified, firstname, lastname, dob, ec_1_name, ec_1_relationship, ec_1_address, ec_1_telephone, ec_1_mobile, ec_2_name, ec_2_relationship, ec_2_address, ec_2_telephone, ec_2_mobile, doctor_name, doctor_address, doctor_telephone, swim, vegetarian, tetanus_date, diseases, allergies, medication_diet, dietary_reqs, faith_needs FROM regmgr_attendee WHERE authenticator=?" [auth]
 
   let val = head entry -- assumes exactly one entry matches this authenticator. BUG: there might be none;  there might be more than 1 but that is statically guaranteed not to happen in the SQL schema (so checked by the SQL type system, not the Haskell type system) - so that's an 'error "impossible"' case.
 
@@ -186,6 +186,39 @@ regformHtml auth view editable = do
 
               -- QUESTION/DISCUSSION: this could be a date picker on the client side in javascript?
               textInputParagraph editable "dob" view "Date of Birth"
+              B.hr
+              B.p "Emergency Contact 1"
+              textInputParagraph editable "ec_1_name" view "Name"
+              textInputParagraph editable "ec_1_relationship" view "Relationship"
+              textInputParagraph editable "ec_1_address" view "Address"
+              textInputParagraph editable "ec_1_telephone" view "Telephone"
+              textInputParagraph editable "ec_1_mobile" view "Mobile telephone"
+
+              B.hr
+              B.p "Emergency Contact 2"
+              textInputParagraph editable "ec_2_name" view "Name"
+              textInputParagraph editable "ec_2_relationship" view "Relationship"
+              textInputParagraph editable "ec_2_address" view "Address"
+              textInputParagraph editable "ec_2_telephone" view "Telephone"
+              textInputParagraph editable "ec_2_mobile" view "Mobile telephone"
+
+              B.hr
+              B.p "Doctor / GP"
+              textInputParagraph editable "doctor_name" view "Name"
+              textInputParagraph editable "doctor_address" view "Address"
+              textInputParagraph editable "doctor_telephone" view "Telephone"
+
+              B.hr
+              boolInputParagraph editable "swim" view "Can participant swim?"
+              boolInputParagraph editable "vegetarian" view "Is participant vegetarian?"
+              B.hr
+              B.p "Medical information"
+              textInputParagraph editable "tetanus_date" view "Date of last tetanus"
+              textInputParagraph editable "diseases" view "Details of any infections/diseases"
+              textInputParagraph editable "allergies" view "Details of any allergies"
+              textInputParagraph editable "medication_diet" view "Details of any dietary requirements"
+              textInputParagraph editable "faith_needs" view "Details of any faith/cultural needs (eg dress, diet, holy days, toilet arrangements)"
+             
 
               when editable $ DB.inputSubmit "Register for event"
             B.hr
@@ -194,6 +227,20 @@ regformHtml auth view editable = do
             B.p $ "Last modified: " <> B.toHtml (show (modified val))
             B.p $ "State: " <> B.toHtml (state val)
 -}
+
+boolInputParagraph editable fieldName view description = 
+  if editable
+    then      B.p $ do
+                DB.label fieldName view description
+                ": "
+                DB.errorList fieldName view
+                DB.inputCheckbox fieldName view
+    else B.p $ do
+                DB.label fieldName view description
+                ": "
+                DB.errorList fieldName view
+                readonlyInputBool fieldName view
+
 
 textInputParagraph editable fieldName view description = 
   if editable
@@ -211,6 +258,9 @@ textInputParagraph editable fieldName view description =
 -- | loosely based on inputText source
 readonlyInputText :: T.Text -> DF.View v -> B.Html
 readonlyInputText ref view = B.toHtml $ DF.fieldInputText ref view
+
+readonlyInputBool :: T.Text -> DF.View v -> B.Html
+readonlyInputBool ref view = B.toHtml $ DF.fieldInputBool ref view
 
 {-
 inputText ref view = H.input
@@ -260,7 +310,7 @@ handleUpdateForm auth reqBody = do
   liftIO $ putStrLn $ "Read authenticator from POST: " ++ auth
 -}
 
-  entry :: [Registration] <- liftIO $ query conn "SELECT authenticator, state, modified, firstname, lastname, dob FROM regmgr_attendee WHERE authenticator=?" [auth]
+  entry :: [Registration] <- liftIO $ query conn "SELECT authenticator, state, modified, firstname, lastname, dob, ec_1_name, ec_1_relationship, ec_1_address, ec_1_telephone, ec_1_mobile, ec_2_name, ec_2_relationship, ec_2_address, ec_2_telephone, ec_2_mobile, doctor_name, doctor_address, doctor_telephone, swim, vegetarian, tetanus_date, diseases, allergies, medication_diet, dietary_reqs, faith_needs FROM regmgr_attendee WHERE authenticator=?" [auth]
 
   let val = head entry -- assumes exactly one entry matches this authenticator. BUG: there might be none;  there might be more than 1 but that is statically guaranteed not to happen in the SQL schema (so checked by the SQL type system, not the Haskell type system) - so that's an 'error "impossible"' case.
 
@@ -291,8 +341,7 @@ handleUpdateForm auth reqBody = do
         liftIO $ putStrLn $ "old SQL database time: " ++ show oldDBTime
         let val' = val { modified = newDBTime, state = "C" }
 
-        -- liftIO $ (putStrLn . show) =<< formatQuery conn "UPDATE regmgr_attendee SET authenticator = ?, state = ?, modified = ?, firstname = ?, lastname= ?, dob=? WHERE authenticator = ?" (val PG.:. [auth]) -- holy bracketing
-        sqlres <- liftIO $ execute conn "UPDATE regmgr_attendee SET authenticator = ?, state = ?, modified = ?, firstname = ?, lastname= ?, dob=? WHERE authenticator = ? AND modified = ?" (val' PG.:. (auth, oldDBTime))
+        sqlres <- liftIO $ execute conn "UPDATE regmgr_attendee SET authenticator = ?, state = ?, modified = ?, firstname = ?, lastname= ?, dob=?, ec_1_name = ?, ec_1_relationship = ?, ec_1_address = ?, ec_1_telephone = ?, ec_1_mobile = ?, ec_2_name =?, ec_2_relationship = ?, ec_2_address = ?, ec_2_telephone = ?, ec_2_mobile = ?, doctor_name = ?, doctor_address = ?, doctor_telephone = ?, swim = ?, vegetarian = ?, tetanus_date = ?, diseases = ?, allergies = ?, medication_diet = ?, dietary_reqs = ?, faith_needs = ? WHERE authenticator = ? AND modified = ?" (val' PG.:. (auth, oldDBTime))
 
         liftIO $ putStrLn $ "SQL UPDATE returned: " ++ (show sqlres)
 
@@ -362,7 +411,28 @@ data Registration = Registration {
     modified :: PG.ZonedTimestamp, -- TODO: debate with self about whether modified should be in the Registration or not as it isn't a traditional "editable" field but instead metadata about the record (like the primary key)
     firstname :: String,
     lastname :: String,
-    dob :: String
+    dob :: String,
+    ec_1_name :: String,
+    ec_1_relationship :: String,
+    ec_1_address :: String,
+    ec_1_telephone :: String,
+    ec_1_mobile :: String,
+    ec_2_name :: String,
+    ec_2_relationship :: String,
+    ec_2_address :: String,
+    ec_2_telephone :: String,
+    ec_2_mobile :: String,
+    doctor_name :: String,
+    doctor_address :: String,
+    doctor_telephone :: String,
+    swim :: Bool,
+    vegetarian :: Bool,
+    tetanus_date :: String,
+    diseases :: String,
+    allergies :: String,
+    medication_diet :: String,
+    dietary_reqs :: String,
+    faith_needs :: String
   } deriving (Generic, Show)
 
 
@@ -378,6 +448,32 @@ registrationDigestiveForm init = Registration
   <*> "firstname" .: DF.string (Just $ firstname init)
   <*> "lastname" .: DF.string (Just $ lastname init)
   <*> "dob" .: nonEmptyString (Just $ dob init)
+
+  <*> "ec_1_name" .: DF.string (Just $ ec_1_name init)
+  <*> "ec_1_relationship" .: DF.string (Just $ ec_1_relationship init)
+  <*> "ec_1_address" .: DF.string (Just $ ec_1_address init)
+  <*> "ec_1_telephone" .: DF.string (Just $ ec_1_telephone init)
+  <*> "ec_1_mobile" .: DF.string (Just $ ec_1_mobile init)
+
+  <*> "ec_2_name" .: DF.string (Just $ ec_2_name init)
+  <*> "ec_2_relationship" .: DF.string (Just $ ec_2_relationship init)
+  <*> "ec_2_address" .: DF.string (Just $ ec_2_address init)
+  <*> "ec_2_telephone" .: DF.string (Just $ ec_2_telephone init)
+  <*> "ec_2_mobile" .: DF.string (Just $ ec_2_mobile init)
+
+  <*> "doctor_name" .: DF.string (Just $ doctor_name init)
+  <*> "doctor_address" .: DF.string (Just $ doctor_address init)
+  <*> "doctor_telephone" .: DF.string (Just $ doctor_telephone init)
+
+  <*> "swim" .: DF.bool (Just $ swim init)  
+  <*> "vegetarian" .: DF.bool (Just $ vegetarian init)
+
+  <*> "tetanus_date" .: DF.string (Just $ tetanus_date init)
+  <*> "diseases" .: DF.string (Just $ diseases init)
+  <*> "allergies" .: DF.string (Just $ allergies init)
+  <*> "medication_diet" .: DF.string (Just $ medication_diet init)
+  <*> "dietary_reqs" .: DF.string (Just $ dietary_reqs init)
+  <*> "faith_needs" .: DF.string (Just $ faith_needs init)
 
 nonEmptyString :: (IsString v, Monoid v, Monad m) => Maybe String -> DF.Form v m String
 nonEmptyString def = 
@@ -399,7 +495,7 @@ handlePDFForm auth = do
   liftIO $ putStrLn "opening db"
   conn <- liftIO $ PG.connectPostgreSQL "user='postgres'" 
 
-  entry :: [Registration] <- liftIO $ query conn "SELECT authenticator, state, modified, firstname, lastname, dob FROM regmgr_attendee WHERE authenticator=?" [auth]
+  entry :: [Registration] <- liftIO $ query conn "SELECT authenticator, state, modified, firstname, lastname, dob, ec_1_name, ec_1_relationship, ec_1_address, ec_1_telephone, ec_1_mobile, ec_2_name, ec_2_relationship, ec_2_address, ec_2_telephone, ec_2_mobile, doctor_name, doctor_address, doctor_telephone, swim, vegetarian, tetanus_date, diseases, allergies, medication_diet, dietary_reqs, faith_needs FROM regmgr_attendee WHERE authenticator=?" [auth]
 
   let val = head entry -- assumes exactly one entry matches this authenticator. BUG: there might be none;  there might be more than 1 but that is statically guaranteed not to happen in the SQL schema (so checked by the SQL type system, not the Haskell type system) - so that's an 'error "impossible"' case.
 
@@ -414,7 +510,8 @@ handlePDFForm auth = do
   -- or reads of root files.
 
   -- we could actually use some arbitrary non-network-id here as
-  -- it is only used locally within this file.
+  -- it is only used locally within this file. This would avoid a
+  -- race condition if we load PDF URL twice at once.
 
   let tempLatexFilename = auth ++ ".latex"
   let tempPDFFilename = auth ++ ".pdf"
@@ -427,9 +524,44 @@ handlePDFForm auth = do
   -- into a short 80-col commandline, and will have symbols that screw
   -- stuff up for substitution commands
 
+  let sed name accessor = liftIO $ callCommand $ "sed -i 's/[+{]" ++ name ++ "[+}]/" ++ accessor val ++ "/' " ++ tempLatexFilename 
+
+  sed "firstname" firstname
+  sed "lastname" lastname
+  sed "dob" dob
+
+  sed "ec-1-name" ec_1_name
+  sed "ec-1-relationship" ec_1_relationship
+  sed "ec-1-address" ec_1_address
+  sed "ec-1-telephone" ec_1_telephone
+  sed "ec-1-mobile" ec_1_mobile
+
+  sed "ec-2-name" ec_2_name
+  sed "ec-2-relationship" ec_2_relationship
+  sed "ec-2-address" ec_2_address
+  sed "ec-2-telephone" ec_2_telephone
+  sed "ec-2-mobile" ec_2_mobile
+
+  sed "doctor-name" doctor_name
+  sed "doctor-address" doctor_address
+  sed "doctor-telephone" doctor_telephone
+
+  -- TODO: this probably needs formatting as Yes/No rather than true/false
+  sed "swim" (show . swim)
+  sed "vegetarian" (show . vegetarian)
+
+  sed "tetanus-date" tetanus_date
+  sed "diseases" diseases
+  sed "allergies" allergies
+  sed "medication-diet" medication_diet
+  sed "dietary-reqs" dietary_reqs
+  sed "faith-needs" faith_needs
+
+  {-
   liftIO $ callCommand $ "sed -i 's/{firstname}/" ++ firstname val ++ "/' " ++ tempLatexFilename
   liftIO $ callCommand $ "sed -i 's/{lastname}/" ++ lastname val ++ "/' " ++ tempLatexFilename
   liftIO $ callCommand $ "sed -i 's/{dob}/" ++ dob val ++ "/' " ++ tempLatexFilename
+  -}
 
   liftIO $ callCommand $ "pdflatex " ++ tempLatexFilename
 

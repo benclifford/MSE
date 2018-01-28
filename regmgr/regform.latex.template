@@ -18,113 +18,93 @@ TODO-Location / TODO-Date
 Particpant details:
 
 
-First Name: {firstname}
+\textbf{First Name:} {firstname}
 
-Last Name: {lastname}
+\textbf{Last Name:} {lastname}
 
-Date of Birth: {dob}
+\textbf{Date of Birth:} {dob}
 
 
 \hrulefill
 
-Emergency Contact (1st)
+\textbf{Emergency Contact (1st)}
 
-Name: TODO
+\textbf{Name:} +ec-1-name+
 
-Relationship: TODO
+\textbf{Relationship:} +ec-1-relationship+
 
-Address: TODO
+\textbf{Address:} +ec-1-address+
 
-Telephone number: 01483 123456
+\textbf{Telephone number:} +ec-1-telephone+
 
-Mobile telephone number: 07000000000
+\textbf{Mobile telephone number:} +ec-1-mobile+
 
 
-Emergency Contact (2nd)
+\textbf{Emergency Contact (2nd)}
 
-Name:
+\textbf{Name:} +ec-2-name+
 
-Relationship:
+\textbf{Relationship:} +ec-2-relationship+
 
-Address:
+\textbf{Address:} +ec-2-address+
 
-Telephone number:
+\textbf{Telephone number:} +ec-2-telephone+
 
-Mobile telephone number:
-
-\hrulefill
-
-Family Doctor / GP
-
-Doctor Name:  XX SOME SURGERY XX
-
-Address: EG. kingfisher drive
-
-Telephone number: 01483 987654
-
-Can participant swim 50 metres? MAYBE
-
-Is participant a vegetarian? MAYBE
+\textbf{Mobile telephone number:} +ec-2-mobile+
 
 \hrulefill
 
-Medical information
+\textbf{Family Doctor / GP}
 
-Date of last tetanus injection: DD/MM/YYY
+\textbf{Doctor Name:} +doctor-name+
 
-Any known infection diseases?
+\textbf{Address:} {doctor-address}
 
-XX
-
-XX
-
-XX
-
-Any known allergies / sensistivities / disabilities / conditions
-and precautions to be taken:
-
-XX
-
-XX
-
-XX
-
-Details of medication and diet
-
-XX
-
-XX
-
-XX
-
-Details of dietary requirements (eg medical / religious)
-
-XX
-
-XX
-
-XX
-
-Details of faith / cultural needs (eg dress, diet, holy days, toilet arrangements)
-
-XX
-
-XX
-
-XX
+\textbf{Telephone number:} {doctor-telephone}
 
 \hrulefill
 
-Signature section
+\textbf{Can participant swim 50 metres?} {swim}
 
-I give permission etc blah blah both medical treatment permission and
-also statement that details are correct etc.
+\textbf{Is participant a vegetarian?} {vegetarian}
+
+\hrulefill
+
+\textbf{Medical information}
+
+\textbf{Date of last tetanus injection:} {tetanus-date}
+
+\textbf{Any known infection diseases?}
+
+{diseases}
+
+\textbf{Any known allergies / sensistivities / disabilities / conditions
+and precautions to be taken:}
+
+{allergies}
+
+\textbf{Details of medication and diet}
+
+{medication-diet}
+
+\textbf{Details of dietary requirements (eg medical / religious)}
+
+{dietary-reqs}
+
+\textbf{Details of faith / cultural needs (eg dress, diet, holy days, toilet arrangements)}
+
+{faith-needs}
+
+\hrulefill
+
+\textbf{I give permission etc blah blah both medical treatment permission and
+also statement that details are correct etc.}
 
 PLEASE DO NOT AMEND THIS FORM. IF DETAILS ARE WRONG PLEASE CONTACT
 YOUR SECTION LEADER.
 
 
-Name of signer: {firstname} {lastname}
+\textbf{Name of signer:} {firstname} {lastname}
 
  XXXXXX Signature here XXXXX NOT STORED IN DATABASE XXXX
 
