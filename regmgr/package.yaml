@@ -37,6 +37,7 @@ executables:
     - regmgr
     - blaze-html
     - bytestring
+    - cassava
     - digestive-functors
     - digestive-functors-blaze
     - postgresql-simple
@@ -44,6 +45,7 @@ executables:
     - servant
     - servant-server
     - servant-blaze
+    - servant-cassava
     - text
     - uuid
     - warp

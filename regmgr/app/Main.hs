@@ -4,6 +4,9 @@
 {-# Language ScopedTypeVariables #-}
 {-# Language DeriveGeneric #-}
 
+{-# Language TypeSynonymInstances #-}
+{-# Language FlexibleInstances #-}
+
 -- for PDF rendering:
 {-# Language MultiParamTypeClasses #-}
 
@@ -32,6 +35,8 @@ import Control.Monad (when)
 import Control.Monad.IO.Class (liftIO)
 
 import qualified Data.ByteString.Lazy as BS
+
+import qualified Data.Csv as CSV
 import qualified Data.Text as T
 import Data.String (fromString, IsString)
 
@@ -50,6 +55,8 @@ import Network.Wai.Handler.Warp (run)
 import Servant
 import Servant.API
 import Servant.HTML.Blaze as SB
+
+import Servant.CSV.Cassava as SC
 
 import System.Process (callCommand)
 
@@ -83,6 +90,8 @@ type UnlockAPI = "unlock" :> Capture "auth" String :> Get '[HTML] B.Html
 type InviteGetAPI = "admin" :> "invite" :> Get '[HTML] B.Html
 type InvitePostAPI = "admin" :> "invite" :> ReqBody '[FormUrlEncoded] [(String, String)] :> Post '[HTML] B.Html
 
+type CSVAPI = "admin" :> "csv" :> Get '[SC.CSV] (Headers '[Header "Content-Disposition" String] [Registration])
+
 
 -- QUESTION/DISCUSSION: note how when updating this API type, eg to
 -- add an endpoint or to change an endpoint type, that there will be
@@ -95,6 +104,7 @@ type API = PingAPI :<|> InboundAuthenticatorAPI
       :<|> UnlockAPI
       :<|> InviteGetAPI
       :<|> InvitePostAPI
+      :<|> CSVAPI
 
 server1 :: Server API
 server1 = handlePing :<|> handleInbound :<|> handleHTMLPing
@@ -103,6 +113,7 @@ server1 = handlePing :<|> handleInbound :<|> handleHTMLPing
   :<|> handleUnlock
   :<|> handleInviteGet
   :<|> handleInvitePost
+  :<|> handleCSV
 
 handlePing :: Handler String
 handlePing = return "PONG"
@@ -707,4 +718,28 @@ invite inv = do
   close conn
 
   return auth
+
+
+
+handleCSV :: Handler (Headers '[Header "Content-Disposition" String] [Registration])
+handleCSV = do
+  
+  conn <- liftIO $ PG.connectPostgreSQL "user='postgres'"
+
+  registrations :: [Registration] <- liftIO $ query conn "SELECT authenticator, state, modified, firstname, lastname, dob, ec_1_name, ec_1_relationship, ec_1_address, ec_1_telephone, ec_1_mobile, ec_2_name, ec_2_relationship, ec_2_address, ec_2_telephone, ec_2_mobile, doctor_name, doctor_address, doctor_telephone, swim, vegetarian, tetanus_date, diseases, allergies, medication_diet, dietary_reqs, faith_needs FROM regmgr_attendee" ()
+  liftIO $ close conn
+  return $ addHeader "attachment;filename=\"registrations.csv\"" registrations
+
+instance CSV.ToNamedRecord Registration
+instance CSV.DefaultOrdered Registration
+
+-- ZonedTimestamp is an alias, so
+-- turn on TypeSynonymInstaces for this
+-- and FlexibleInstances
+instance CSV.ToField PG.ZonedTimestamp
+  where
+    toField ts = CSV.toField (show ts)
+instance CSV.ToField Bool
+  where
+    toField bool = CSV.toField (show bool)
 
