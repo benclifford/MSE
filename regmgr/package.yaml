@@ -45,6 +45,7 @@ executables:
     - servant-server
     - servant-blaze
     - text
+    - uuid
     - warp
 
 tests:

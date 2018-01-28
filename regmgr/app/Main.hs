@@ -37,6 +37,9 @@ import Data.String (fromString, IsString)
 
 import Data.Monoid ( (<>) )
 
+import Data.UUID.V4 (nextRandom)
+import qualified Data.UUID as UUID
+
 import Database.PostgreSQL.Simple as PG
 import Database.PostgreSQL.Simple.Time as PG
 
@@ -77,6 +80,9 @@ type PDFFormAPI = "pdf" :> Capture "auth" String :> Get '[PDF] BS.ByteString
 
 type UnlockAPI = "unlock" :> Capture "auth" String :> Get '[HTML] B.Html
 
+type InviteGetAPI = "admin" :> "invite" :> Get '[HTML] B.Html
+type InvitePostAPI = "admin" :> "invite" :> ReqBody '[FormUrlEncoded] [(String, String)] :> Post '[HTML] B.Html
+
 
 -- QUESTION/DISCUSSION: note how when updating this API type, eg to
 -- add an endpoint or to change an endpoint type, that there will be
@@ -87,12 +93,16 @@ type API = PingAPI :<|> InboundAuthenticatorAPI
       :<|> UpdateFormAPI
       :<|> PDFFormAPI
       :<|> UnlockAPI
+      :<|> InviteGetAPI
+      :<|> InvitePostAPI
 
 server1 :: Server API
 server1 = handlePing :<|> handleInbound :<|> handleHTMLPing
   :<|> handleUpdateForm
   :<|> handlePDFForm
   :<|> handleUnlock
+  :<|> handleInviteGet
+  :<|> handleInvitePost
 
 handlePing :: Handler String
 handlePing = return "PONG"
@@ -340,7 +350,7 @@ handleUpdateForm auth reqBody = do
         conn <- liftIO $ PG.connectPostgreSQL "user='postgres'" 
 
         -- we'll ask the database for the current time, rather than
-        -- caring about local system time.
+        -- caring about local system time. TODO factor
         [[newDBTime]] :: [[PG.ZonedTimestamp]] <- liftIO $ query conn "SELECT NOW()" ()
  
         liftIO $ putStrLn $ "new SQL database time: " ++ show newDBTime
@@ -487,10 +497,18 @@ registrationDigestiveForm init = Registration
   <*> "dietary_reqs" .: DF.string (Just $ dietary_reqs init)
   <*> "faith_needs" .: DF.string (Just $ faith_needs init)
 
+
+
+
+-- this is DF in general, not specific to registrations so maybe
+-- in own module?
+-- stolen from ocharles 24 days of hackage
 nonEmptyString :: (IsString v, Monoid v, Monad m) => Maybe String -> DF.Form v m String
 nonEmptyString def = 
     (DF.check "This field must not be empty" (/= ""))
   $ DF.string def
+
+
 
 
 entryEditable :: Registration -> Bool
@@ -548,7 +566,7 @@ handlePDFForm auth = do
   -- into a short 80-col commandline, and will have symbols that screw
   -- stuff up for substitution commands
 
-  let sed name accessor = liftIO $ callCommand $ "sed -i 's/[+{]" ++ name ++ "[+}]/" ++ accessor val ++ "/' " ++ tempLatexFilename 
+  let sed name accessor = liftIO $ callCommand $ "sed -i 's~[+{]" ++ name ++ "[+}]~" ++ accessor val ++ "~' " ++ tempLatexFilename 
 
   sed "firstname" firstname
   sed "lastname" lastname
@@ -607,3 +625,86 @@ instance Accept PDF where
 instance MimeRender PDF BS.ByteString
   where
     mimeRender _ bs = bs
+
+-- ======== invitations ============
+-- Invitations by name, rather than from OSM.
+
+-- There will be an invitation form for the purposes of
+-- digestive-functors; but it won't be stored as such in
+-- the database. Instead, it will be used to create a new
+-- Registration record in 'N' state.
+
+-- TODO: use haskell modules to get rid of inv_ prefix
+data Invitation = Invitation {
+    inv_firstname :: String,
+    inv_lastname :: String
+  }
+
+invitationDigestiveForm :: Monad m => DF.Form B.Html m Invitation
+invitationDigestiveForm = Invitation
+  <$> "firstname" .: nonEmptyString Nothing
+  <*> "lastname" .: nonEmptyString Nothing
+
+invitationHtml :: DF.View B.Html -> B.Html
+invitationHtml view = do
+  B.h1 "Invite new participant manually"
+  B.p "Enter basic details of a new participant here and a registration link will be generated for them to complete"
+  B.form
+    ! BA.action "/admin/invite"
+    ! BA.method "post"
+    $ do
+      B.p $ do
+        DB.label "firstname" view "First name"
+        ": "
+        DB.errorList "firstname" view
+        DB.inputText "firstname" view
+      B.p $ do
+        DB.label "lastname" view "Family name"
+        ": "
+        DB.errorList "lastname" view
+        DB.inputText "lastname" view
+      DB.inputSubmit "Invite participant" 
+
+
+handleInviteGet :: Handler B.Html
+handleInviteGet = do
+  view :: DF.View B.Html <- DF.getForm "Invitation" invitationDigestiveForm
+  return (invitationHtml view)
+
+
+handleInvitePost :: [(String, String)] -> Handler B.Html
+handleInvitePost reqBody = do
+  f <- DF.postForm "Invitation" invitationDigestiveForm (servantPathEnv reqBody)
+  case f of
+    (view, Just value) -> do
+      liftIO $ putStrLn "Invitation validated in digestive functor"
+      auth <- liftIO $ invite value
+      return $ do
+        B.h1 "Invitation submitted"
+        B.p $ "An invitation was generated for " <> (B.toHtml $ inv_firstname value) <> " " <> (B.toHtml $ inv_lastname value)
+        B.p $ do
+          "Please ask the participant to complete the form "
+          (B.a ! BA.href ("/register/" <> fromString auth))
+            "the form at this URL"
+
+    (view, Nothing) -> do
+      liftIO $ putStrLn "Invitation POST did not validate in digestive functor"
+      return (invitationHtml view)
+
+invite :: Invitation -> IO String
+invite inv = do
+
+  uuid <- nextRandom
+  let auth = UUID.toString uuid
+
+  liftIO $ putStrLn "opening db"
+  conn <- liftIO $ PG.connectPostgreSQL "user='postgres'" 
+
+  [[newDBTime]] :: [[PG.ZonedTimestamp]] <- liftIO $ query conn "SELECT NOW()" ()
+
+  liftIO $ execute conn "INSERT INTO regmgr_attendee (authenticator, state, modified, firstname, lastname) VALUES (?,?,?,?,?)"
+    (auth, "N" :: String, newDBTime, inv_firstname inv, inv_lastname inv)
+  close conn
+
+  return auth
+
