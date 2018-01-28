@@ -32,7 +32,7 @@ module Main where
 
 import Control.Monad (when)
 
-import Control.Monad.IO.Class (liftIO)
+import Control.Monad.IO.Class (liftIO, MonadIO)
 
 import qualified Data.ByteString.Lazy as BS
 
@@ -157,16 +157,14 @@ handleInbound auth = do
   -- transaction.
 
   liftIO $ putStrLn "opening db"
-  conn <- liftIO $ PG.connectPostgreSQL "user='postgres'" 
 
-  entry :: [Registration] <- liftIO $ query conn "SELECT authenticator, state, modified, firstname, lastname, dob, ec_1_name, ec_1_relationship, ec_1_address, ec_1_telephone, ec_1_mobile, ec_2_name, ec_2_relationship, ec_2_address, ec_2_telephone, ec_2_mobile, doctor_name, doctor_address, doctor_telephone, swim, vegetarian, tetanus_date, diseases, allergies, medication_diet, dietary_reqs, faith_needs FROM regmgr_attendee WHERE authenticator=?" [auth]
+  entry :: [Registration] <- withDB $ \conn -> query conn "SELECT authenticator, state, modified, firstname, lastname, dob, ec_1_name, ec_1_relationship, ec_1_address, ec_1_telephone, ec_1_mobile, ec_2_name, ec_2_relationship, ec_2_address, ec_2_telephone, ec_2_mobile, doctor_name, doctor_address, doctor_telephone, swim, vegetarian, tetanus_date, diseases, allergies, medication_diet, dietary_reqs, faith_needs FROM regmgr_attendee WHERE authenticator=?" [auth]
 
   let val = head entry -- assumes exactly one entry matches this authenticator. BUG: there might be none;  there might be more than 1 but that is statically guaranteed not to happen in the SQL schema (so checked by the SQL type system, not the Haskell type system) - so that's an 'error "impossible"' case.
 
   liftIO $ putStrLn $ "got sql result: " ++ show entry
 
   liftIO $ putStrLn "closing db"
-  liftIO $ PG.close conn 
 
   let title = "Registration for " <> B.toHtml (firstname val) <> " " <> B.toHtml (lastname val)
 
@@ -328,28 +326,13 @@ servantPathEnv reqBody ty = do
 
 handleUpdateForm :: String -> [(String,String)] -> Handler B.Html
 handleUpdateForm auth reqBody = do
--- TODO: factor
-  liftIO $ putStrLn "opening db"
-  conn <- liftIO $ PG.connectPostgreSQL "user='postgres'"  -- TODO: this shoudl be in a bracket with close to handle exceptions happening before the close that kill this handler but don't kill the whole process.
 
-  liftIO $ putStrLn $ "Post params: " ++ show reqBody
-
-{-
-  -- QUESTION/DISCUSSION this is an ugly way to find the actual DB
-  -- record in so much as we have to know about the way in which
-  -- digestive-functor names its fields.
-
-  let (Just auth) = lookup "Registration.authenticator" reqBody
-  liftIO $ putStrLn $ "Read authenticator from POST: " ++ auth
--}
-
-  entry :: [Registration] <- liftIO $ query conn "SELECT authenticator, state, modified, firstname, lastname, dob, ec_1_name, ec_1_relationship, ec_1_address, ec_1_telephone, ec_1_mobile, ec_2_name, ec_2_relationship, ec_2_address, ec_2_telephone, ec_2_mobile, doctor_name, doctor_address, doctor_telephone, swim, vegetarian, tetanus_date, diseases, allergies, medication_diet, dietary_reqs, faith_needs FROM regmgr_attendee WHERE authenticator=?" [auth]
+  entry :: [Registration] <- withDB $ \conn -> query conn "SELECT authenticator, state, modified, firstname, lastname, dob, ec_1_name, ec_1_relationship, ec_1_address, ec_1_telephone, ec_1_mobile, ec_2_name, ec_2_relationship, ec_2_address, ec_2_telephone, ec_2_mobile, doctor_name, doctor_address, doctor_telephone, swim, vegetarian, tetanus_date, diseases, allergies, medication_diet, dietary_reqs, faith_needs FROM regmgr_attendee WHERE authenticator=?" [auth]
 
   let val = head entry -- assumes exactly one entry matches this authenticator. BUG: there might be none;  there might be more than 1 but that is statically guaranteed not to happen in the SQL schema (so checked by the SQL type system, not the Haskell type system) - so that's an 'error "impossible"' case.
 
   liftIO $ putStrLn $ "got sql result: " ++ show entry
-  liftIO $ putStrLn "closing db"
-  liftIO $ PG.close conn 
+
   let title = "Registration for " <> B.toHtml (firstname val) <> " " <> B.toHtml (lastname val)
 
   let editable = entryEditable val
@@ -362,23 +345,22 @@ handleUpdateForm auth reqBody = do
 
         liftIO $ putStrLn "Updating DB"
         -- write out 'val' to the database
-        conn <- liftIO $ PG.connectPostgreSQL "user='postgres'" 
+        sqlres <- withDB $ \conn -> do
 
-        -- we'll ask the database for the current time, rather than
-        -- caring about local system time. TODO factor
-        [[newDBTime]] :: [[PG.ZonedTimestamp]] <- liftIO $ query conn "SELECT NOW()" ()
+          -- we'll ask the database for the current time, rather than
+          -- caring about local system time. TODO factor
+          [[newDBTime]] :: [[PG.ZonedTimestamp]] <- liftIO $ query conn "SELECT NOW()" ()
  
-        liftIO $ putStrLn $ "new SQL database time: " ++ show newDBTime
+          putStrLn $ "new SQL database time: " ++ show newDBTime
        
-        let oldDBTime = modified val 
-        liftIO $ putStrLn $ "old SQL database time: " ++ show oldDBTime
-        let val' = val { modified = newDBTime, state = "C" }
+          let oldDBTime = modified val 
+          putStrLn $ "old SQL database time: " ++ show oldDBTime
+          let val' = val { modified = newDBTime, state = "C" }
 
-        sqlres <- liftIO $ execute conn "UPDATE regmgr_attendee SET authenticator = ?, state = ?, modified = ?, firstname = ?, lastname= ?, dob=?, ec_1_name = ?, ec_1_relationship = ?, ec_1_address = ?, ec_1_telephone = ?, ec_1_mobile = ?, ec_2_name =?, ec_2_relationship = ?, ec_2_address = ?, ec_2_telephone = ?, ec_2_mobile = ?, doctor_name = ?, doctor_address = ?, doctor_telephone = ?, swim = ?, vegetarian = ?, tetanus_date = ?, diseases = ?, allergies = ?, medication_diet = ?, dietary_reqs = ?, faith_needs = ? WHERE authenticator = ? AND modified = ?" (val' PG.:. (auth, oldDBTime))
+          r <- execute conn "UPDATE regmgr_attendee SET authenticator = ?, state = ?, modified = ?, firstname = ?, lastname= ?, dob=?, ec_1_name = ?, ec_1_relationship = ?, ec_1_address = ?, ec_1_telephone = ?, ec_1_mobile = ?, ec_2_name =?, ec_2_relationship = ?, ec_2_address = ?, ec_2_telephone = ?, ec_2_mobile = ?, doctor_name = ?, doctor_address = ?, doctor_telephone = ?, swim = ?, vegetarian = ?, tetanus_date = ?, diseases = ?, allergies = ?, medication_diet = ?, dietary_reqs = ?, faith_needs = ? WHERE authenticator = ? AND modified = ?" (val' PG.:. (auth, oldDBTime))
 
-        liftIO $ putStrLn $ "SQL UPDATE returned: " ++ (show sqlres)
-
-        liftIO $ close conn
+          putStrLn $ "SQL UPDATE returned: " ++ (show r)
+          return r
 
         if sqlres == 1
           then return $ -- success
@@ -533,11 +515,8 @@ entryEditable registration = state registration `elem` ["N", "I"]
 
 handleUnlock :: String -> Handler B.Html
 handleUnlock auth = do
-  conn <- liftIO $ PG.connectPostgreSQL "user='postgres'" 
 
-  sqlres <- liftIO $ execute conn "UPDATE regmgr_attendee SET state = ? WHERE authenticator = ?" ("N" :: String, auth)
-
-  liftIO $ close conn
+  sqlres <- withDB $ \conn -> execute conn "UPDATE regmgr_attendee SET state = ? WHERE authenticator = ?" ("N" :: String, auth)
 
   handleInbound auth
 
@@ -547,19 +526,11 @@ handleUnlock auth = do
 handlePDFForm :: String -> Handler BS.ByteString
 handlePDFForm auth = do
 
-  -- TODO: factor this read-from-DB
-
-  liftIO $ putStrLn "opening db"
-  conn <- liftIO $ PG.connectPostgreSQL "user='postgres'" 
-
-  entry :: [Registration] <- liftIO $ query conn "SELECT authenticator, state, modified, firstname, lastname, dob, ec_1_name, ec_1_relationship, ec_1_address, ec_1_telephone, ec_1_mobile, ec_2_name, ec_2_relationship, ec_2_address, ec_2_telephone, ec_2_mobile, doctor_name, doctor_address, doctor_telephone, swim, vegetarian, tetanus_date, diseases, allergies, medication_diet, dietary_reqs, faith_needs FROM regmgr_attendee WHERE authenticator=?" [auth]
+  entry :: [Registration] <- withDB $ \conn -> query conn "SELECT authenticator, state, modified, firstname, lastname, dob, ec_1_name, ec_1_relationship, ec_1_address, ec_1_telephone, ec_1_mobile, ec_2_name, ec_2_relationship, ec_2_address, ec_2_telephone, ec_2_mobile, doctor_name, doctor_address, doctor_telephone, swim, vegetarian, tetanus_date, diseases, allergies, medication_diet, dietary_reqs, faith_needs FROM regmgr_attendee WHERE authenticator=?" [auth]
 
   let val = head entry -- assumes exactly one entry matches this authenticator. BUG: there might be none;  there might be more than 1 but that is statically guaranteed not to happen in the SQL schema (so checked by the SQL type system, not the Haskell type system) - so that's an 'error "impossible"' case.
 
   liftIO $ putStrLn $ "got sql result: " ++ show entry
-
-  liftIO $ putStrLn "closing db"
-  liftIO $ PG.close conn 
 
 
   -- SECURITY BUG: sanitation: auth is passed to external programs
@@ -712,14 +683,11 @@ invite inv = do
   uuid <- nextRandom
   let auth = UUID.toString uuid
 
-  liftIO $ putStrLn "opening db"
-  conn <- liftIO $ PG.connectPostgreSQL "user='postgres'" 
+  withDB $ \conn -> do
+    [[newDBTime]] :: [[PG.ZonedTimestamp]] <- query conn "SELECT NOW()" ()
 
-  [[newDBTime]] :: [[PG.ZonedTimestamp]] <- liftIO $ query conn "SELECT NOW()" ()
-
-  liftIO $ execute conn "INSERT INTO regmgr_attendee (authenticator, state, modified, firstname, lastname) VALUES (?,?,?,?,?)"
-    (auth, "N" :: String, newDBTime, inv_firstname inv, inv_lastname inv)
-  close conn
+    execute conn "INSERT INTO regmgr_attendee (authenticator, state, modified, firstname, lastname) VALUES (?,?,?,?,?)"
+      (auth, "N" :: String, newDBTime, inv_firstname inv, inv_lastname inv)
 
   return auth
 
@@ -728,10 +696,8 @@ invite inv = do
 handleCSV :: Handler (Headers '[Header "Content-Disposition" String] [Registration])
 handleCSV = do
   
-  conn <- liftIO $ PG.connectPostgreSQL "user='postgres'"
+  registrations :: [Registration] <- withDB $ \conn -> query conn "SELECT authenticator, state, modified, firstname, lastname, dob, ec_1_name, ec_1_relationship, ec_1_address, ec_1_telephone, ec_1_mobile, ec_2_name, ec_2_relationship, ec_2_address, ec_2_telephone, ec_2_mobile, doctor_name, doctor_address, doctor_telephone, swim, vegetarian, tetanus_date, diseases, allergies, medication_diet, dietary_reqs, faith_needs FROM regmgr_attendee" ()
 
-  registrations :: [Registration] <- liftIO $ query conn "SELECT authenticator, state, modified, firstname, lastname, dob, ec_1_name, ec_1_relationship, ec_1_address, ec_1_telephone, ec_1_mobile, ec_2_name, ec_2_relationship, ec_2_address, ec_2_telephone, ec_2_mobile, doctor_name, doctor_address, doctor_telephone, swim, vegetarian, tetanus_date, diseases, allergies, medication_diet, dietary_reqs, faith_needs FROM regmgr_attendee" ()
-  liftIO $ close conn
   return $ addHeader "attachment;filename=\"registrations.csv\"" registrations
 
 instance CSV.ToNamedRecord Registration
@@ -759,4 +725,22 @@ handleAdminStatic = return $ do
   B.p $ (B.a ! BA.href "/admin/csv")
       "Download CSV of all forms, completed and not-completed"
   
+
+
+
+-- Abstracted database handling
+
+-- TODO: bracket
+withDB :: MonadIO m => (PG.Connection -> IO a) -> m a
+withDB act = liftIO $ do
+  putStrLn "withDB: opening db"
+  conn <- PG.connectPostgreSQL "user='postgres'" 
+
+  v <- act conn
+
+  putStrLn "withDB: closing db"
+  PG.close conn 
+
+  return v
+
 
