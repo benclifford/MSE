@@ -36,9 +36,11 @@ executables:
     dependencies:
     - regmgr
     - blaze-html
+    - bytestring
     - digestive-functors
     - digestive-functors-blaze
     - postgresql-simple
+    - process
     - servant
     - servant-server
     - servant-blaze

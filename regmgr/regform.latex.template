@@ -1,0 +1,130 @@
+\documentclass[a4paper]{memoir}
+
+\usepackage[top=1cm,bottom=1cm, right=1cm, left=1cm]{geometry}
+
+\begin{document}
+
+Adult Permission Form and Medical Information
+
+PLEASE DO NOT AMEND THIS FORM. IF DETAILS ARE WRONG PLEASE CONTACT
+YOUR SECTION LEADER.
+
+1st Merrow Group Camp
+
+Location
+
+Date
+
+Particpant details:
+
+
+First Name: {firstname}
+
+Last Name: {lastname}
+
+Date of Birth: {dob}
+
+
+
+Emergency Contact (1st)
+
+Name: TODO
+
+Relationship: TODO
+
+Address: TODO
+
+Telephone number: 01483 123456
+
+Mobile telephone number: 07000000000
+
+
+Emergency Contact (2nd)
+
+Name
+
+Relationship
+
+Address
+
+Telephone number
+
+Mobile telephone number
+
+
+Family Doctor 
+
+Doctor Name  merrow park surgery
+
+Address kingfisher drive
+
+Telephone number 01483 987654
+
+Can participant swim 50 metres? YES
+
+Is participant a vegetarian? NO
+
+Medical information
+
+Date of last tetanus injection: DD/MM/YYY
+
+Any known infection diseases?
+
+XX
+
+XX
+
+XX
+
+Any known allergies / sensistivities / disabilities / conditions
+and precautions to be taken:
+
+XX
+
+XX
+
+XX
+
+Detais of medication and diet
+
+XX
+
+XX
+
+XX
+
+Details of dietary requirements (eg medical / religious)
+
+XX
+
+XX
+
+XX
+
+Details of faith / cultural needs (eg dress, diet, holy days, toilet arrangements)
+
+XX
+
+XX
+
+XX
+
+
+Signature section
+
+I give permission etc blah blah both medical treatment permission and
+also statement that details are correct etc.
+
+PLEASE DO NOT AMEND THIS FORM. IF DETAILS ARE WRONG PLEASE CONTACT
+YOUR SECTION LEADER.
+
+
+Name of signer: {firstname} {lastname}
+
+ XXXXXX Signature here XXXXX - non-database
+
+ XXXXXX Date XXXXX - non-database
+
+
+\end{document}
+

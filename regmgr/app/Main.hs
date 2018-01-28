@@ -4,6 +4,9 @@
 {-# Language ScopedTypeVariables #-}
 {-# Language DeriveGeneric #-}
 
+-- for PDF rendering:
+{-# Language MultiParamTypeClasses #-}
+
 -- blaze tutorial here:
 -- https://jaspervdj.be/blaze/tutorial.html
 
@@ -28,6 +31,7 @@ import Control.Monad (when)
 
 import Control.Monad.IO.Class (liftIO)
 
+import qualified Data.ByteString.Lazy as BS
 import qualified Data.Text as T
 import Data.String (fromString, IsString)
 
@@ -44,6 +48,8 @@ import Servant
 import Servant.API
 import Servant.HTML.Blaze as SB
 
+import System.Process (callCommand)
+
 import qualified Text.Blaze.Html5 as B
 import Text.Blaze.Html5 ( (!) )
 import qualified Text.Blaze.Html5.Attributes as BA
@@ -54,6 +60,7 @@ import Text.Digestive ( (.:) )
 import Text.Digestive.Blaze.Html5 as DB
 
 import Lib
+
 
 type PingAPI =
   "ping" :> Get '[PlainText] String
@@ -66,6 +73,8 @@ type InboundAuthenticatorAPI = "register" :> Capture "uuid" String :> Get '[HTML
 
 type UpdateFormAPI = "register" :> Capture "uuid" String :> ReqBody '[FormUrlEncoded] [(String,String)] :> Post '[HTML] B.Html
 
+type PDFFormAPI = "pdf" :> Capture "auth" String :> Get '[PDF] BS.ByteString
+
 -- QUESTION/DISCUSSION: note how when updating this API type, eg to
 -- add an endpoint or to change an endpoint type, that there will be
 -- a type error if we dont' also update server1 to handle the change
@@ -73,10 +82,12 @@ type UpdateFormAPI = "register" :> Capture "uuid" String :> ReqBody '[FormUrlEnc
 type API = PingAPI :<|> InboundAuthenticatorAPI
       :<|> HTMLPingAPI
       :<|> UpdateFormAPI
+      :<|> PDFFormAPI
 
 server1 :: Server API
 server1 = handlePing :<|> handleInbound :<|> handleHTMLPing
   :<|> handleUpdateForm
+  :<|> handlePDFForm
 
 handlePing :: Handler String
 handlePing = return "PONG"
@@ -365,3 +376,66 @@ nonEmptyString def =
 entryEditable :: Registration -> Bool
 entryEditable registration = state registration `elem` ["N", "I"]
 
+
+-- code to handle PDFs
+
+handlePDFForm :: String -> Handler BS.ByteString
+handlePDFForm auth = do
+
+  -- TODO: factor this read-from-DB
+
+  liftIO $ putStrLn "opening db"
+  conn <- liftIO $ PG.connectPostgreSQL "user='postgres'" 
+
+  entry :: [Registration] <- liftIO $ query conn "SELECT authenticator, state, modified, firstname, lastname, dob FROM regmgr_attendee WHERE authenticator=?" [auth]
+
+  let val = head entry -- assumes exactly one entry matches this authenticator. BUG: there might be none;  there might be more than 1 but that is statically guaranteed not to happen in the SQL schema (so checked by the SQL type system, not the Haskell type system) - so that's an 'error "impossible"' case.
+
+  liftIO $ putStrLn $ "got sql result: " ++ show entry
+
+  liftIO $ putStrLn "closing db"
+  liftIO $ PG.close conn 
+
+
+  -- SECURITY BUG: sanitation: auth is passed to external programs
+  -- but has been read over the wire. Could contain shell commands
+  -- or reads of root files.
+
+  -- we could actually use some arbitrary non-network-id here as
+  -- it is only used locally within this file.
+
+  let tempLatexFilename = auth ++ ".latex"
+  let tempPDFFilename = auth ++ ".pdf"
+
+  liftIO $ callCommand $ "cp regform.latex.template " ++ tempLatexFilename
+
+  -- TODO: now some sed in-place commands or something like that?
+  -- be aware that there are likely to be text fields with interesting
+  -- content (such as medical descriptions) that won't naturally fit
+  -- into a short 80-col commandline, and will have symbols that screw
+  -- stuff up for substitution commands
+
+  liftIO $ callCommand $ "sed -i 's/{firstname}/" ++ firstname val ++ "/' " ++ tempLatexFilename
+  liftIO $ callCommand $ "sed -i 's/{lastname}/" ++ lastname val ++ "/' " ++ tempLatexFilename
+  liftIO $ callCommand $ "sed -i 's/{dob}/" ++ dob val ++ "/' " ++ tempLatexFilename
+
+  liftIO $ callCommand $ "pdflatex " ++ tempLatexFilename
+
+  -- Note this is a lazy read, so can't delete temporary files if they
+  -- are then returned.
+  content <- liftIO $ BS.readFile tempPDFFilename
+  return content
+
+-- PDF content type
+-- only "renderable" from a bytestring - on the assumption that we'll
+-- only be reading them from a file that is generated separately from
+-- the Servant mechanics.
+
+data PDF
+
+instance Accept PDF where
+  contentType _ = "application/pdf"
+
+instance MimeRender PDF BS.ByteString
+  where
+    mimeRender _ bs = bs
