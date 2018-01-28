@@ -252,11 +252,6 @@ regformHtml auth view editable = do
 
               when editable $ DB.inputSubmit "Register for event"
             B.hr
-{-
-            B.h2 "Internal debugging information"
-            B.p $ "Last modified: " <> B.toHtml (show (modified val))
-            B.p $ "State: " <> B.toHtml (state val)
--}
 
 boolInputParagraph editable fieldName view description = 
   if editable
@@ -291,16 +286,6 @@ readonlyInputText ref view = B.toHtml $ DF.fieldInputText ref view
 
 readonlyInputBool :: T.Text -> DF.View v -> B.Html
 readonlyInputBool ref view = B.toHtml $ DF.fieldInputBool ref view
-
-{-
-inputText ref view = H.input
-    ! A.type_ "text"
-    ! A.id    (H.toValue ref')
-    ! A.name  (H.toValue ref')
-    ! A.value (H.toValue $ fieldInputText ref view)
-  where
-    ref' = absoluteRef ref view
--}
 
 
 -- | [(String, String)] is a req body deserialisation - that might not
@@ -583,12 +568,6 @@ handlePDFForm auth = do
   sed "medication-diet" medication_diet
   sed "dietary-reqs" dietary_reqs
   sed "faith-needs" faith_needs
-
-  {-
-  liftIO $ callCommand $ "sed -i 's/{firstname}/" ++ firstname val ++ "/' " ++ tempLatexFilename
-  liftIO $ callCommand $ "sed -i 's/{lastname}/" ++ lastname val ++ "/' " ++ tempLatexFilename
-  liftIO $ callCommand $ "sed -i 's/{dob}/" ++ dob val ++ "/' " ++ tempLatexFilename
-  -}
 
   liftIO $ callCommand $ "pdflatex " ++ tempLatexFilename
 
