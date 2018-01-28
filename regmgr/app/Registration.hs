@@ -3,6 +3,7 @@
 module Registration where
 
 import GHC.Generics
+import Database.PostgreSQL.Simple as PG
 import Database.PostgreSQL.Simple.Time as PG
 
 -- | This models the registration form and could have type classes
@@ -36,5 +37,8 @@ data Registration = Registration {
     dietary_reqs :: String,
     faith_needs :: String
   } deriving (Generic, Show)
+
+instance PG.FromRow Registration
+instance PG.ToRow Registration
 
 
