@@ -75,6 +75,9 @@ type UpdateFormAPI = "register" :> Capture "uuid" String :> ReqBody '[FormUrlEnc
 
 type PDFFormAPI = "pdf" :> Capture "auth" String :> Get '[PDF] BS.ByteString
 
+type UnlockAPI = "unlock" :> Capture "auth" String :> Get '[HTML] B.Html
+
+
 -- QUESTION/DISCUSSION: note how when updating this API type, eg to
 -- add an endpoint or to change an endpoint type, that there will be
 -- a type error if we dont' also update server1 to handle the change
@@ -83,11 +86,13 @@ type API = PingAPI :<|> InboundAuthenticatorAPI
       :<|> HTMLPingAPI
       :<|> UpdateFormAPI
       :<|> PDFFormAPI
+      :<|> UnlockAPI
 
 server1 :: Server API
 server1 = handlePing :<|> handleInbound :<|> handleHTMLPing
   :<|> handleUpdateForm
   :<|> handlePDFForm
+  :<|> handleUnlock
 
 handlePing :: Handler String
 handlePing = return "PONG"
@@ -99,7 +104,6 @@ handleHTMLPing = return $ B.docTypeHtml $ do
   B.body $ do
     B.h1 "Ping response"
     B.p "ok"
-
 
 handleInbound :: String -> Handler B.Html
 handleInbound auth = do
@@ -171,6 +175,10 @@ regformHtml auth view editable = do
                   (B.a ! BA.href ("/pdf/" <> fromString auth))
                     "please print out and sign the permission form"
                   "."
+                B.p $ do
+                  "debug: "
+                  (B.a ! BA.href ("/unlock/" <> fromString auth))
+                    "admin mode: unlock this participant for further edits"
 
             -- QUESTION/DISCUSSION: type_ has to have a different name with an underscore because type is a reserved word.
             B.form ! BA.action ("/register/" <> (fromString auth))
@@ -363,6 +371,10 @@ handleUpdateForm auth reqBody = do
                 B.p $ do
                   "debug: "
                   B.toHtml $ show val
+                B.p $ do
+                  "debug: "
+                  (B.a ! BA.href ("/unlock/" <> fromString auth))
+                    "admin mode: unlock this participant for further edits"
           else -- failure due to database error
             return $ B.docTypeHtml $ do
               B.head $ do
@@ -483,6 +495,18 @@ nonEmptyString def =
 
 entryEditable :: Registration -> Bool
 entryEditable registration = state registration `elem` ["N", "I"]
+
+-- debug code to unlock
+
+handleUnlock :: String -> Handler B.Html
+handleUnlock auth = do
+  conn <- liftIO $ PG.connectPostgreSQL "user='postgres'" 
+
+  sqlres <- liftIO $ execute conn "UPDATE regmgr_attendee SET state = ? WHERE authenticator = ?" ("N" :: String, auth)
+
+  liftIO $ close conn
+
+  handleInbound auth
 
 
 -- code to handle PDFs
