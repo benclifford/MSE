@@ -1,7 +1,7 @@
-\documentclass[a4paper]{memoir}
+\documentclass[oneside,a4paper]{memoir}
 
 \usepackage{xcolor}
-\usepackage[top=0.5cm,bottom=0.5cm, right=0.5cm, left=2cm]{geometry}
+\usepackage[top=0.5cm,bottom=1.3cm, right=0.5cm, left=2cm]{geometry}
 
 \newcommand{\field}[1]{\texttt{\textbf{#1}}}
 
@@ -13,7 +13,9 @@
 
 \setlength{\parindent}{0ex}
 
-\pagestyle{empty}
+\pagestyle{plain}
+
+\makeoddfoot{plain}{}{+authenticator+ +modified+ page \thepage{} of \thelastpage{} +firstname+ +lastname+}{}
 
 \begin{document}
 

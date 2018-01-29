@@ -45,6 +45,9 @@ handlePDFForm auth = do
 
   let sed name accessor = liftIO $ callCommand $ "sed -i 's~[+{]" ++ name ++ "[+}]~" ++ accessor val ++ "~' " ++ tempLatexFilename 
 
+  sed "authenticator" authenticator
+  sed "modified" (show . modified)
+
   sed "firstname" firstname
   sed "lastname" lastname
   sed "dob" dob
@@ -76,6 +79,11 @@ handlePDFForm auth = do
   sed "dietary-reqs" dietary_reqs
   sed "faith-needs" faith_needs
 
+  liftIO $ callCommand $ "pdflatex " ++ tempLatexFilename
+
+  -- because we have to call latex a few times for page numbering
+  liftIO $ callCommand $ "pdflatex " ++ tempLatexFilename
+  liftIO $ callCommand $ "pdflatex " ++ tempLatexFilename
   liftIO $ callCommand $ "pdflatex " ++ tempLatexFilename
 
   -- Note this is a lazy read, so can't delete temporary files if they
