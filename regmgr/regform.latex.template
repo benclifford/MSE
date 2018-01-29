@@ -1,6 +1,9 @@
 \documentclass[a4paper]{memoir}
 
-\usepackage[top=1cm,bottom=1cm, right=1cm, left=3cm]{geometry}
+\usepackage{xcolor}
+\usepackage[top=0.5cm,bottom=0.5cm, right=0.5cm, left=2cm]{geometry}
+
+\newcommand{\field}[1]{\texttt{\textbf{#1}}}
 
 \setlength{\parindent}{0ex}
 
@@ -14,116 +17,122 @@
 \textbf{\huge SCOUT/TODO}
 
 \textbf{1st Merrow Scout Camp, Some campsite, May 2018}
-
-\textbf{Adult Permission Form and Medical Information}
+\hfill
+\textbf{Permission Form and Medical Information}
 
 PLEASE DO NOT AMEND THIS FORM. If some of the details are wrong, please
 contact your section leader.
 
 \hrulefill
 
-About the participant:
+About the participant
 
-First Name: \textbf{{firstname}}
+First Name: \field{{firstname}}
 \hfill
-Last Name: \textbf{{lastname}}
+Last Name: \field{{lastname}}
 \hfill
-Gender: \textbf{{TODO}}
+Gender: \field{{TODO}}
 \hfill
-Date of Birth: \textbf{{dob}}
+Date of Birth: \field{{dob}}
 
-Address: \textbf{{TODO}}
+Address: \field{{TODO}}
 
-Telephone: \textbf{{TODO}}
+Telephone: \field{{TODO}}
+\hfill
+Section: \field{Scouts/TODO}
 
 \hrulefill
 
 Emergency Contact (1st)
 
-Name: \textbf{+ec-1-name+}
+Name: \field{+ec-1-name+}
 \hfill
-Relationship: \textbf{+ec-1-relationship+}
+Relationship: \field{+ec-1-relationship+}
 
-Address: \textbf{+ec-1-address+}
+Address: \field{+ec-1-address+}
 
-Telephone number: \textbf{+ec-1-telephone+}
+Telephone number: \field{+ec-1-telephone+}
 \hfill
-Mobile telephone number: \textbf{+ec-1-mobile+}
+Mobile telephone number: \field{+ec-1-mobile+}
 
 \hrulefill
 
 Emergency Contact (2nd)
 
-Name: \textbf{+ec-2-name+}
+Name: \field{+ec-2-name+}
 \hfill
-Relationship: \textbf{+ec-2-relationship+}
+Relationship: \field{+ec-2-relationship+}
 
-Address: \textbf{+ec-2-address+}
+Address: \field{+ec-2-address+}
 
-Telephone number: \textbf{+ec-2-telephone+}
+Telephone number: \field{+ec-2-telephone+}
 \hfill
-Mobile telephone number: \textbf{+ec-2-mobile+}
+Mobile telephone number: \field{+ec-2-mobile+}
 
 \hrulefill
 
 Family Doctor / GP
 
-Doctor Name: \textbf{+doctor-name+}
+Doctor Name: \field{+doctor-name+}
 
-Address: \textbf{{doctor-address}}
+Address: \field{{doctor-address}}
 
-Telephone number: \textbf{{doctor-telephone}}
+Telephone number: \field{{doctor-telephone}}
 
 \hrulefill
 
 Activity authorisation
 
-Can participant swim 50 metres? \textbf{{swim}}
+Is participant allowed to participate in general activities? \field{TODO}
+
+Can participant swim 50 metres? \field{{swim}}
 
 \hrulefill
 
 Medical information
 
-Date of last tetanus injection: \textbf{{tetanus-date}}
+Date of last tetanus injection: \field{{tetanus-date}}
 
+\begin{tabular}{ p{11.5cm} | p{5.5cm} }
+\hline
 Any known infectious diseases with which they have been in
 contact within the month previous to the signing of this form
 (e.g. Chicken Pox, Diptheria, Measles, Mumps, Rubella, Whooping Cough,
 Diarrhoea, Vomiting, etc):
-
-\textbf{{diseases}}
-
+&
+\field{{diseases}}  \\
+\hline
 Any Known Allerges / Sensitivities / Disabilities / Medical Conditions
 and details of any known precautions or remedies (e.g. Penicillin,
 Food Colourings, Travel Sickness, Bed-wetting, Period Pains, Asthma
-etc):
-
-\textbf{{allergies}}
-
+etc): &
+\field{{allergies}} \\
+\hline
 
 If he/she/TODO has he take any medications, the bottle(s), tube(s) or other
 items should be clearly labelled with their name and exact dosages. The
 Scout Leader should be informed before hand and handed any
-medication upon arrival.
+medication upon arrival. \\
 
 Details of any medicines / diets / treatments currently being
 taken / followed (including inhalers and epi-pens) and dosage details.
 Include any non-prescription preparations, such as cough sweets, herbal
 medicines. Please state whether he/she/TODO will self medicate, what
 condition is being treated, and the specialist / hospital concerned
-if appropriate:
+if appropriate: & \field{{medication-diet}} \\
+\hline
+Is he/she/TODO a vegetarian? & \field{+vegetarian+} \\
 
-\textbf{{medication-diet}}
 
-Is he/she/TODO a vegetarian? \textbf{+vegetarian+}
+\hline
 
-Details of dietary requirements eg medical or religious:
-
-\textbf{{dietary-reqs}}
-
-Details of faith or cultural needs eg dress, diet, holy days, toilet arrangements:
-
-\textbf{{faith-needs}}
+Details of dietary requirements eg medical or religious: & 
+\field{{dietary-reqs}} \\
+\hline
+Details of faith or cultural needs eg dress, diet, holy days, toilet arrangements: &
+\field{{faith-needs}}  \\
+\hline
+\end{tabular}
 
 \hrulefill
 
@@ -140,13 +149,15 @@ event may be used for Scout Association publicity.
 
 
 
-Name of signer: \textbf{{firstname} {lastname} TODO}
+Name of signer: \field{{firstname} {lastname} TODO}
 \hfill
-Date: \textbf{TODO}
+Date: \field{TODO}
 \hfill
-Relationship to young person: \textbf{TODO}
+Relationship to young person: \field{TODO}
 
- XXXXXX Signature here XXXXX NOT STORED IN DATABASE XXXX
+\hrulefill XXXXXX Signature here XXXXX NOT STORED IN DATABASE XXXX \hrulefill
+
+\hrulefill
 
 PLEASE DO NOT AMEND THIS FORM. If some of the details are wrong, please
 contact your section leader.
