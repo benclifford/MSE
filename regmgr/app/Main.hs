@@ -247,6 +247,7 @@ regformHtml auth view editable = do
               textInputParagraph editable "diseases" view "Details of any infections/diseases"
               textInputParagraph editable "allergies" view "Details of any allergies"
               textInputParagraph editable "medication_diet" view "Details of any dietary requirements"
+              textInputParagraph editable "dietary_reqs" view "Details of any dietary requirements"
               textInputParagraph editable "faith_needs" view "Details of any faith/cultural needs (eg dress, diet, holy days, toilet arrangements)"
              
 
