@@ -28,8 +28,13 @@ First Name: \textbf{{firstname}}
 \hfill
 Last Name: \textbf{{lastname}}
 \hfill
+Gender: \textbf{{TODO}}
+\hfill
 Date of Birth: \textbf{{dob}}
 
+Address: \textbf{{TODO}}
+
+Telephone: \textbf{{TODO}}
 
 \hrulefill
 
