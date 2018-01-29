@@ -5,6 +5,10 @@
 
 \newcommand{\field}[1]{\texttt{\textbf{#1}}}
 
+\newcommand{\pronoun}[0]{he/she/they/TODO }
+
+\newcommand{\offspring}[0]{son/daughter/TODO2 }
+
 \setlength{\parindent}{0ex}
 
 \pagestyle{empty}
@@ -93,7 +97,7 @@ Medical information
 
 Date of last tetanus injection: \field{{tetanus-date}}
 
-\begin{tabular}{ p{11.5cm} | p{5.5cm} }
+\begin{tabular}{p{11.5cm} | p{5.5cm} }
 \hline
 Any known infectious diseases with which they have been in
 contact within the month previous to the signing of this form
@@ -109,19 +113,19 @@ etc): &
 \field{{allergies}} \\
 \hline
 
-If he/she/TODO has he take any medications, the bottle(s), tube(s) or other
+If \pronoun has to take any medications, the bottle(s), tube(s) or other
 items should be clearly labelled with their name and exact dosages. The
 Scout Leader should be informed before hand and handed any
 medication upon arrival. \\
 
 Details of any medicines / diets / treatments currently being
-taken / followed (including inhalers and epi-pens) and dosage details.
+taken / followed (including inhalers and EpiPens) and dosage details.
 Include any non-prescription preparations, such as cough sweets, herbal
-medicines. Please state whether he/she/TODO will self medicate, what
+medicines. Please state whether \pronoun will self medicate, what
 condition is being treated, and the specialist / hospital concerned
 if appropriate: & \field{{medication-diet}} \\
 \hline
-Is he/she/TODO a vegetarian? & \field{+vegetarian+} \\
+Is \pronoun a vegetarian? & \field{+vegetarian+} \\
 
 
 \hline
@@ -137,14 +141,14 @@ Details of faith or cultural needs eg dress, diet, holy days, toilet arrangement
 \hrulefill
 
 I authorise the Scout Leader in charge to give permission for
-my son/daughter/TODO to receive medication as instructed above and any
+my \offspring to receive medication as instructed above and any
 emergency dental, medical or surgical treatment including anaesthetic,
 as considered necessary by the medical authorities present. I hereby
 give permission for the young person named above to attend a camp
 organised by 1st Merrow and supervised by the Scout leaders. I understand
 that the Scout Leader or Organiser of the event reserves the right to 
 send participants home if necessary. I understand and agree that
-photographs/TODO and digital images of my son/daughter/TODO taken at the
+photographs/TODO and digital images of my \offspring taken at the
 event may be used for Scout Association publicity.
 
 
@@ -153,7 +157,7 @@ Name of signer: \field{{firstname} {lastname} TODO}
 \hfill
 Date: \field{TODO}
 \hfill
-Relationship to young person: \field{TODO}
+Relationship to participant: \field{TODO}
 
 \hrulefill XXXXXX Signature here XXXXX NOT STORED IN DATABASE XXXX \hrulefill
 
