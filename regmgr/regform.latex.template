@@ -9,6 +9,8 @@
 
 \newcommand{\offspring}[0]{son/daughter/TODO2 }
 
+\newcommand{\possessive}[0]{his/her/their/TODO3 }
+
 \setlength{\parindent}{0ex}
 
 \pagestyle{empty}
@@ -99,7 +101,7 @@ Date of last tetanus injection: \field{{tetanus-date}}
 
 \begin{tabular}{p{11.5cm} | p{5.5cm} }
 \hline
-Any known infectious diseases with which they have been in
+Any known infectious diseases with which \pronoun has been in
 contact within the month previous to the signing of this form
 (e.g. Chicken Pox, Diptheria, Measles, Mumps, Rubella, Whooping Cough,
 Diarrhoea, Vomiting, etc):
@@ -114,8 +116,8 @@ etc): &
 \hline
 
 If \pronoun has to take any medications, the bottle(s), tube(s) or other
-items should be clearly labelled with their name and exact dosages. The
-Scout Leader should be informed before hand and handed any
+items should be clearly labelled with \possessive name and exact dosages. The
+Scout Leader should be informed beforehand and handed any
 medication upon arrival. \\
 
 Details of any medicines / diets / treatments currently being
