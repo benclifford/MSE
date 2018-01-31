@@ -40,7 +40,7 @@ import qualified Data.ByteString.Lazy as BS
 
 import qualified Data.Csv as CSV
 import qualified Data.Text as T
-import Data.String (fromString, IsString)
+import Data.String (fromString)
 
 import Data.Monoid ( (<>) )
 
@@ -67,6 +67,8 @@ import Text.Digestive ( (.:) )
 import Text.Digestive.Blaze.Html5 as DB
 
 import DB
+import DigestiveBits
+import DigestiveServant
 import PDF
 import Registration
 
@@ -285,25 +287,6 @@ readonlyInputBool :: T.Text -> DF.View v -> B.Html
 readonlyInputBool ref view = B.toHtml $ DF.fieldInputBool ref view
 
 
--- | [(String, String)] is a req body deserialisation - that might not
---   be the best type - I think servant can deserialise to various
---   forms (so potentially could deserialise directly to an Env
---   without with helper being explicit... instead the same helper
---   code would go in typeclass impl?)
-servantPathEnv :: Monad m => [(String, String)] -> DF.FormEncType -> m (DF.Env m)
-servantPathEnv reqBody _ = do
-
-  let env :: Monad n => DF.Env n
-      env path = do
-        let pathAsString = (T.unpack . DF.fromPath) path
-        let v' = lookup pathAsString reqBody -- BUG? might be multiple values? the digestive-functor docs suggest some input types (selectors?) do that somehow?
-        case v' of Nothing -> return []
-                   Just v -> return [DF.TextInput $ T.pack v]
-        -- This case could be a maybeToList then a map T.pack?
-        -- is that clearer or less clear?
-
-  return env
-
 
 handleUpdateForm :: String -> [(String,String)] -> Handler B.Html
 handleUpdateForm auth reqBody = do
@@ -439,18 +422,6 @@ registrationDigestiveForm init = Registration
   <*> "medication_diet" .: DF.string (Just $ medication_diet init)
   <*> "dietary_reqs" .: DF.string (Just $ dietary_reqs init)
   <*> "faith_needs" .: DF.string (Just $ faith_needs init)
-
-
-
-
--- this is DF in general, not specific to registrations so maybe
--- in own module?
--- stolen from ocharles 24 days of hackage
-nonEmptyString :: (IsString v, Monoid v, Monad m) => Maybe String -> DF.Form v m String
-nonEmptyString def = 
-    (DF.check "This field must not be empty" (/= ""))
-  $ DF.string def
-
 
 
 
