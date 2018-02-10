@@ -15,14 +15,14 @@
 
 \pagestyle{plain}
 
-\makeoddfoot{plain}{}{+authenticator+ +modified+ page \thepage{} of \thelastpage{} +firstname+ +lastname+}{}
+\makeoddfoot{plain}{}{+authenticator+ / +modified+ / page \thepage{} of \thelastpage{} / +firstname+ +lastname+}{}
 
 \begin{document}
 
 
 \textbf{\huge +lastname+, +firstname+}
 \hfill
-\textbf{\huge SCOUT/TODO}
+\textbf{\huge SCOUT/TODO CODES/TODO}
 
 \textbf{1st Merrow Scout Camp, Some campsite, May 2018}
 \hfill
