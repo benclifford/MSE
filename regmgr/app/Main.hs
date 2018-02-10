@@ -68,6 +68,7 @@ import Text.Digestive ( (.:) )
 import Text.Digestive.Blaze.Html5 as DB
 
 import DB
+import DBSOP
 import DigestiveBits
 import DigestiveServant
 import PDF
@@ -192,6 +193,7 @@ selectAll = withDB $ \conn -> PGS.gselectFrom conn "regmgr_attendee" ()
 
 -- selectAll = withDB $ \conn -> query conn "SELECT authenticator, state, modified, firstname, lastname, dob, ec_1_name, ec_1_relationship, ec_1_address, ec_1_telephone, ec_1_mobile, ec_2_name, ec_2_relationship, ec_2_address, ec_2_telephone, ec_2_mobile, doctor_name, doctor_address, doctor_telephone, swim, vegetarian, tetanus_date, diseases, allergies, medication_diet, dietary_reqs, faith_needs FROM regmgr_attendee" ()
 
+updateByAuthAndModified conn val' auth oldDBTime = gupdateInto conn "regmgr_attendee" "authenticator = ? AND modified = ?" val' (auth, oldDBTime)
 
 
 -- | generates an HTML view of this form, which may be editable
@@ -333,7 +335,7 @@ handleUpdateForm auth reqBody = do
           putStrLn $ "old SQL database time: " ++ show oldDBTime
           let val' = val { modified = newDBTime, state = "C" }
 
-          r <- execute conn "UPDATE regmgr_attendee SET authenticator = ?, state = ?, modified = ?, firstname = ?, lastname= ?, dob=?, ec_1_name = ?, ec_1_relationship = ?, ec_1_address = ?, ec_1_telephone = ?, ec_1_mobile = ?, ec_2_name =?, ec_2_relationship = ?, ec_2_address = ?, ec_2_telephone = ?, ec_2_mobile = ?, doctor_name = ?, doctor_address = ?, doctor_telephone = ?, swim = ?, vegetarian = ?, tetanus_date = ?, diseases = ?, allergies = ?, medication_diet = ?, dietary_reqs = ?, faith_needs = ? WHERE authenticator = ? AND modified = ?" (val' PG.:. (auth, oldDBTime))
+          r <- updateByAuthAndModified conn val' auth oldDBTime
 
           putStrLn $ "SQL UPDATE returned: " ++ (show r)
           return r
