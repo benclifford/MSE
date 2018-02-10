@@ -40,7 +40,9 @@ executables:
     - cassava
     - digestive-functors
     - digestive-functors-blaze
+    - generics-sop
     - postgresql-simple
+    - postgresql-simple-sop
     - process
     - servant
     - servant-server

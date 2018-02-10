@@ -2,8 +2,10 @@
 
 module Registration where
 
-import GHC.Generics
+import qualified GHC.Generics as GG
+import qualified Generics.SOP as GS
 import Database.PostgreSQL.Simple as PG
+import Database.PostgreSQL.Simple.SOP as PGS
 import Database.PostgreSQL.Simple.Time as PG
 
 -- | This models the registration form and could have type classes
@@ -36,9 +38,12 @@ data Registration = Registration {
     medication_diet :: String,
     dietary_reqs :: String,
     faith_needs :: String
-  } deriving (Generic, Show)
+  } deriving (GG.Generic, Show)
 
 instance PG.FromRow Registration
 instance PG.ToRow Registration
 
+instance GS.Generic Registration
+instance GS.HasDatatypeInfo Registration
 
+instance PGS.HasFieldNames Registration
