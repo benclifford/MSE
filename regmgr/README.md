@@ -1,5 +1,9 @@
 # regmgr
 
+Non-stack-installed dependencies:
+postgres
+sendmail
+
 To setup database:
 
 stack build postgresql-simple-migration
