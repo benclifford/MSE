@@ -37,7 +37,7 @@ resolver: lts-10.3
 # will not be run. This is useful for tweaking upstream packages.
 packages:
 - .
-- postgresql-simple-sop
+# - postgresql-simple-sop
 # Dependency packages to be pulled from upstream that are not in the resolver
 # (e.g., acme-missiles-0.3)
 # extra-deps: []
@@ -45,6 +45,8 @@ packages:
 extra-deps:
 - digestive-functors-0.8.3.0
 - digestive-functors-blaze-0.6.2.0
+- git: https://github.com/benclifford/postgresql-simple-sop
+  commit: master
 
 # Override default flag values for local packages and extra-deps
 # flags: {}
