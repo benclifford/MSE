@@ -71,6 +71,7 @@ import DB
 import DBSOP
 import DigestiveBits
 import DigestiveServant
+import InvitationEmail
 import PDF
 import Registration
 
@@ -93,6 +94,8 @@ type UnlockAPI = "unlock" :> Capture "auth" String :> Get '[HTML] B.Html
 type InviteGetAPI = "admin" :> "invite" :> Get '[HTML] B.Html
 type InvitePostAPI = "admin" :> "invite" :> ReqBody '[FormUrlEncoded] [(String, String)] :> Post '[HTML] B.Html
 
+type MailTestAPI = "admin" :> "mailtest" :> Get '[HTML] B.Html
+
 type CSVAPI = "admin" :> "csv" :> Get '[SC.CSV] (Headers '[Header "Content-Disposition" String] [Registration])
 
 type AdminStaticAPI = "admin" :> Get '[HTML] B.Html
@@ -111,6 +114,7 @@ type API = PingAPI :<|> InboundAuthenticatorAPI
       :<|> InvitePostAPI
       :<|> CSVAPI
       :<|> AdminStaticAPI
+      :<|> MailTestAPI
 
 server1 :: Server API
 server1 = handlePing :<|> handleInbound :<|> handleHTMLPing
@@ -121,6 +125,7 @@ server1 = handlePing :<|> handleInbound :<|> handleHTMLPing
   :<|> handleInvitePost
   :<|> handleCSV
   :<|> handleAdminStatic
+  :<|> handleMailTest
 
 handlePing :: Handler String
 handlePing = return "PONG"
@@ -567,3 +572,9 @@ handleAdminStatic = return $ do
   B.p $ (B.a ! BA.href "/admin/csv")
       "Download CSV of all forms, completed and not-completed"
   
+
+
+handleMailTest :: Handler B.Html
+handleMailTest = do
+  liftIO $ sendTop
+  return $ B.p "mail test response"
