@@ -15,7 +15,7 @@
 
 \pagestyle{plain}
 
-\makeoddfoot{plain}{}{+authenticator+ / +modified+ / page \thepage{} of \thelastpage{} / +firstname+ +lastname+}{}
+\makeoddfoot{plain}{}{+authenticator+ / +modified+ / page \thepage{} of \thelastpage{} / +invite_email+ / +firstname+ +lastname+}{}
 
 \begin{document}
 

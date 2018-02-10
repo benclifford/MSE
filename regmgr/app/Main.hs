@@ -407,6 +407,8 @@ registrationDigestiveForm init = Registration
   <$> "authenticator" .: DF.string (Just $ authenticator init) -- TODO: a validator on this should check that the form value matches up with the value in init - which will, for example, have been read from the db
   <*> "state" .: DF.string (Just $ state init) -- TODO: a validator on this should check that the form value matches up with the value in init, which will for example, have come from the DB. Or is perhaps also nullable to allow creation of entries. Or perhaps to check we are doing the right kind of state progression so that record can't be moved into wrong state by rogue HTTP request?
   <*> "modified" .: (read <$> (DF.string (Just $ show $ modified init))) -- BUG: ignores modified time from client! which means OCC is broken as we always default to the latest version and so mostly don't ever hit a conflict. And the problem here is that we need to serialise it out to a form field and then parse it back in later, which is troublesome.
+  <*> "invite_email" .: DF.string (Just $ invite_email init)
+
   <*> "firstname" .: DF.string (Just $ firstname init)
   <*> "lastname" .: DF.string (Just $ lastname init)
   <*> "dob" .: nonEmptyString (Just $ dob init)
