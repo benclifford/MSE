@@ -8,6 +8,7 @@ module PDF where
 import Control.Monad.IO.Class (liftIO)
 import qualified Data.ByteString.Lazy as BS 
 import Database.PostgreSQL.Simple as PG
+import Database.PostgreSQL.Simple.SOP as PGS
 import Servant
 import System.Process (callCommand)
 
@@ -17,7 +18,8 @@ import Registration
 handlePDFForm :: String -> Handler BS.ByteString
 handlePDFForm auth = do
 
-  entry :: [Registration] <- withDB $ \conn -> PG.query conn "SELECT authenticator, state, modified, invite_email, firstname, lastname, dob, ec_1_name, ec_1_relationship, ec_1_address, ec_1_telephone, ec_1_mobile, ec_2_name, ec_2_relationship, ec_2_address, ec_2_telephone, ec_2_mobile, doctor_name, doctor_address, doctor_telephone, swim, vegetarian, tetanus_date, diseases, allergies, medication_diet, dietary_reqs, faith_needs FROM regmgr_attendee WHERE authenticator=?" [auth]
+  -- TODO: factor with selectByAuthenticator in app/Main.hs
+  entry <- withDB $ \conn -> PGS.gselectFrom conn "regmgr_attendee where authenticator=?" [auth]
 
   let val = head entry -- assumes exactly one entry matches this authenticator. BUG: there might be none;  there might be more than 1 but that is statically guaranteed not to happen in the SQL schema (so checked by the SQL type system, not the Haskell type system) - so that's an 'error "impossible"' case.
 
