@@ -18,7 +18,7 @@ import qualified Database.PostgreSQL.Simple as PG
 import qualified Database.PostgreSQL.Simple.SOP as PGS
 
 gupdateInto :: forall r. forall s.
-    (PG.ToRow r, GS.Generic r, PGS.HasFieldNames r,
+    (PG.ToRow r, PGS.HasFieldNames r,
      PG.ToRow s)
   => PG.Connection -> PG.Query -> PG.Query -> r -> s -> IO Int64
 gupdateInto conn tbl whereclause val where_val = do
