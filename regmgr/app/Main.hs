@@ -195,11 +195,7 @@ handleInbound auth = do
 
 selectByAuthenticator auth = withDB $ \conn -> PGS.gselectFrom conn "regmgr_attendee where authenticator=?" [auth]
 
--- selectByAuthenticator auth = withDB $ \conn -> query conn "SELECT authenticator, state, modified, firstname, lastname, dob, ec_1_name, ec_1_relationship, ec_1_address, ec_1_telephone, ec_1_mobile, ec_2_name, ec_2_relationship, ec_2_address, ec_2_telephone, ec_2_mobile, doctor_name, doctor_address, doctor_telephone, swim, vegetarian, tetanus_date, diseases, allergies, medication_diet, dietary_reqs, faith_needs FROM regmgr_attendee WHERE authenticator=?" [auth]
-
 selectAll = withDB $ \conn -> PGS.gselectFrom conn "regmgr_attendee" ()
-
--- selectAll = withDB $ \conn -> query conn "SELECT authenticator, state, modified, firstname, lastname, dob, ec_1_name, ec_1_relationship, ec_1_address, ec_1_telephone, ec_1_mobile, ec_2_name, ec_2_relationship, ec_2_address, ec_2_telephone, ec_2_mobile, doctor_name, doctor_address, doctor_telephone, swim, vegetarian, tetanus_date, diseases, allergies, medication_diet, dietary_reqs, faith_needs FROM regmgr_attendee" ()
 
 updateByAuthAndModified conn val' auth oldDBTime = gupdateInto conn "regmgr_attendee" "authenticator = ? AND modified = ?" val' (auth, oldDBTime)
 
