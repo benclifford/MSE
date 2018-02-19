@@ -181,6 +181,13 @@ instance FromJSON ScoutID where
   parseJSON (String t) = return (ScoutID (read (unpack t)))
   parseJSON v = ScoutID <$> (parseJSON v)
 
+secretPostData secrets = 
+  [ "userid" := _userid secrets
+  , "secret" := _secret secrets  
+  , "apiid" := _apiId secrets
+  , "token" := _token secrets
+  ]
+
 main :: IO ()
 main = do
   putStrLn "osmgateway"
@@ -202,11 +209,7 @@ main = do
 
   let opts = defaults & param "action" .~ ["getTerms"]
 
-  let postData = [ "userid" := _userid secrets
-                 , "secret" := _secret secrets  
-                 , "apiid" := _apiId secrets
-                 , "token" := _token secrets
-                 ]
+  let postData = secretPostData secrets
 
   v :: HashMap String [Term] <- postWithResponse "terms" opts url postData
   let terms = concat (HM.elems v)
@@ -220,11 +223,7 @@ main = do
 
   let opts = defaults & param "action" .~ ["getUserRoles"]
 
-  let postData = [ "userid" := _userid secrets
-                 , "secret" := _secret secrets  
-                 , "apiid" := _apiId secrets
-                 , "token" := _token secrets
-                 ]
+  let postData = secretPostData secrets
 
   sectionConfigs :: [Section] <- postWithResponse "sectionConfigs" opts url postData
 
@@ -280,12 +279,7 @@ main = do
                           & param "termid" .~ [pack $ _termid term]
                           & param "sectionid" .~ [pack $ _sectionid section]
 
-      let postData = [ "userid" := _userid secrets
-                     , "secret" := _secret secrets  
-                     , "apiid" := _apiId secrets
-                     , "token" := _token secrets
-
-                     ]
+      let postData = secretPostData secrets
 
       obs' :: ExtMembersContacts <- postWithResponse "ExtMembersContacts" opts url postData
 
@@ -319,11 +313,7 @@ main = do
                           & param "sectionid" .~ [pack $ _sectionid section]
                           & param "scoutid" .~ [pack $ show $ scoutid_num]
 
-            let postData = [ "userid" := _userid secrets
-                           , "secret" := _secret secrets  
-                           , "apiid" := _apiId secrets
-                           , "token" := _token secrets
-                     ]
+            let postData = secretPostData secrets
 
             individual :: EMCGetIndividual <- postWithResponse "EMCGetIndividual" opts url postData
 
@@ -342,11 +332,8 @@ main = do
             let opts = defaults & param "action" .~ ["getData"]
                           & param "section_id" .~ [pack $ _sectionid section]
 
-            let postData = [ "userid" := _userid secrets
-                           , "secret" := _secret secrets  
-                           , "apiid" := _apiId secrets
-                           , "token" := _token secrets
-                           , "associated_id" := (show $ scoutid_num)
+            let postData = secretPostData secrets ++ 
+                     [       "associated_id" := (show $ scoutid_num)
                            , "associated_type" := ("member" :: String)
                      ]
 
@@ -396,11 +383,7 @@ main = do
 
   let url = "https://www.onlinescoutmanager.co.uk/ext/events/event/?action=getAttendance&eventid=323383&sectionid=3940&termid=194039"
 
-  let postData = [ "userid" := _userid secrets
-                 , "secret" := _secret secrets  
-                 , "apiid" := _apiId secrets
-                 , "token" := _token secrets
-                 ]
+  let postData = secretPostData secrets
 
   let opts = defaults
 
