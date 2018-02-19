@@ -468,7 +468,7 @@ registrationDigestiveForm init = Registration
 
 
 entryEditable :: Registration -> Bool
-entryEditable registration = state registration `elem` ["N", "I"]
+entryEditable registration = state registration `elem` ["M", "N", "I"]
 
 -- debug code to unlock
 
