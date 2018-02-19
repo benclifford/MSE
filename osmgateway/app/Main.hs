@@ -188,6 +188,125 @@ secretPostData secrets =
   , "token" := _token secrets
   ]
 
+getTerms :: Secrets -> IO [Term]
+getTerms secrets = do
+  putStrLn "osmgateway: getting list of terms"
+  
+  let url = "https://www.onlinescoutmanager.co.uk/api.php"
+
+  let opts = defaults & param "action" .~ ["getTerms"]
+
+  let postData = secretPostData secrets
+
+  v :: HashMap String [Term] <- postWithResponse "terms" opts url postData
+  let terms = concat (HM.elems v)
+  return terms
+
+getSectionConfigs :: Secrets -> IO [Section]
+getSectionConfigs secrets = do
+
+  putStrLn "osmgateway: getting sections this user has a role in"
+  
+  let url = "https://www.onlinescoutmanager.co.uk/api.php"
+
+  let opts = defaults & param "action" .~ ["getUserRoles"]
+
+  let postData = secretPostData secrets
+
+  sectionConfigs :: [Section] <- postWithResponse "sectionConfigs" opts url postData
+
+  return sectionConfigs
+
+getExtMembersContacts :: Secrets -> Term -> Section -> IO ExtMembersContacts
+getExtMembersContacts secrets term section = do
+  -- QUESTION is this really the right URL for getting members details?
+  -- it doesn't look like 'api.php' at all.
+  -- It needs a / on the end too (presumably to hit something like
+  -- an index.php)
+  -- let url = "https://www.onlinescoutmanager.co.uk/api.php"
+  -- let url = "https://www.onlinescoutmanager.co.uk/ext/members/contact"
+  let url = "https://www.onlinescoutmanager.co.uk/ext/members/contact/"
+
+{- QUESTION/DISCUSSION: what an awkward separation of parameters
+   between URL and post data 
+-}
+  let opts = defaults & param "action" .~ ["getListOfMembers"]
+                      & param "termid" .~ [pack $ _termid term]
+                      & param "sectionid" .~ [pack $ _sectionid section]
+
+  let postData = secretPostData secrets
+
+  emc :: ExtMembersContacts <- postWithResponse "ExtMembersContacts" opts url postData
+
+  return emc
+
+
+getEMCIndividual :: Secrets -> Term -> Section -> ScoutID -> IO EMCGetIndividual
+getEMCIndividual secrets term section scoutid = do
+  putStrLn $ "Retrieving individual details for: " ++ show scoutid
+  -- from web API:
+  -- https://www.onlinescoutmanager.co.uk/ext/members/contact/?action=getIndividual&sectionid=3943&scoutid=1004107&termid=194058&context=members
+  -- section and term, although seemingly they wouldn't be needed, are mandatory. context is not. so this works:
+  -- https://www.onlinescoutmanager.co.uk/ext/members/contact/?action=getIndividual&sectionid=3943&scoutid=1004107&termid=194058
+
+  -- which means we can only get the information for a member in the context of a Term (the section ID is implied by and contained in the Term) - the data is not identical across sections/terms, although hopefully it is pretty consistent.
+  -- note that there is an "Others" text field listing other sections that the person is associated with - for example, in an Adults term, I am also listed as "1st Merrow: Scouts"
+
+
+
+  let url = "https://www.onlinescoutmanager.co.uk/ext/members/contact/"
+
+  let (ScoutID scoutid_num) = scoutid
+  let opts = defaults & param "action" .~ ["getIndividual"]
+                      & param "termid" .~ [pack $ _termid term]
+                      & param "sectionid" .~ [pack $ _sectionid section]
+                      & param "scoutid" .~ [pack $ show $ scoutid_num]
+
+  let postData = secretPostData secrets
+
+  individual :: EMCGetIndividual <- postWithResponse "EMCGetIndividual" opts url postData
+  return individual
+
+getExtraData :: Secrets -> Section -> ScoutID -> IO ExtraData
+getExtraData secrets section scoutid = do
+
+  putStrLn $ "Requesting full data for " ++ show scoutid 
+
+  -- section goes into the URL, but scoutid goes into the
+  -- post fields...
+  -- https://www.onlinescoutmanager.co.uk/ext/customdata/?action=getData&section_id=3940
+  let url = "https://www.onlinescoutmanager.co.uk/ext/customdata/"
+
+  let (ScoutID scoutid_num) = scoutid
+  let opts = defaults & param "action" .~ ["getData"]
+                      & param "section_id" .~ [pack $ _sectionid section]
+
+  let postData = secretPostData secrets
+              ++ [ "associated_id" := (show $ scoutid_num)
+                 , "associated_type" := ("member" :: String)
+                 ]
+
+
+  extraData :: ExtraData <- postWithResponse "extradata" opts url postData
+  putStrLn "End of extradata block"
+
+  return extraData
+
+getEventAttendeeList :: Secrets -> IO EventAttendeeList
+getEventAttendeeList secrets = do
+  putStrLn "osmgateway: getting scout camp event"
+
+  let url = "https://www.onlinescoutmanager.co.uk/ext/events/event/?action=getAttendance&eventid=323383&sectionid=3940&termid=194039"
+
+  let postData = secretPostData secrets
+
+  let opts = defaults
+
+  v :: EventAttendeeList <- postWithResponse "event attendee list" opts url postData
+
+  return v
+
+
 main :: IO ()
 main = do
   putStrLn "osmgateway"
@@ -199,33 +318,12 @@ main = do
   secrets <- read <$> readFile "secrets.dat" :: IO Secrets
   print secrets
 
-  -- this gives a list of terms, but that's not what I want
-  -- ... I want section info. I can grab section IDs out of
-  -- this at least, to iterate over.
-
-  putStrLn "osmgateway: getting list of terms"
-  
-  let url = "https://www.onlinescoutmanager.co.uk/api.php"
-
-  let opts = defaults & param "action" .~ ["getTerms"]
-
-  let postData = secretPostData secrets
-
-  v :: HashMap String [Term] <- postWithResponse "terms" opts url postData
-  let terms = concat (HM.elems v)
+  terms <- getTerms secrets
 
   putStrLn "terms = "
   mapM_ print terms
 
-  putStrLn "osmgateway: getting user roles"
-  
-  let url = "https://www.onlinescoutmanager.co.uk/api.php"
-
-  let opts = defaults & param "action" .~ ["getUserRoles"]
-
-  let postData = secretPostData secrets
-
-  sectionConfigs :: [Section] <- postWithResponse "sectionConfigs" opts url postData
+  sectionConfigs <- getSectionConfigs secrets
 
   for sectionConfigs $ \section -> do
     let sectionid = _sectionid section
@@ -264,24 +362,8 @@ main = do
    -- https://www.onlinescoutmanager.co.uk/ext/members/contact/?action=getListOfMembers&sort=dob&sectionid=3940&termid=194039&section=scouts 
    -- but looks like we can skip the sort and section titles.
 
-      -- QUESTION is this really the right URL for getting members details?
-      -- it doesn't look like 'api.php' at all.
-      -- It needs a / on the end too (presumably to hit something like
-      -- an index.php)
-      -- let url = "https://www.onlinescoutmanager.co.uk/api.php"
-      -- let url = "https://www.onlinescoutmanager.co.uk/ext/members/contact"
-      let url = "https://www.onlinescoutmanager.co.uk/ext/members/contact/"
 
-{- QUESTION/DISCUSSION: what an awkward separation of parameters
-   between URL and post data 
--}
-      let opts = defaults & param "action" .~ ["getListOfMembers"]
-                          & param "termid" .~ [pack $ _termid term]
-                          & param "sectionid" .~ [pack $ _sectionid section]
-
-      let postData = secretPostData secrets
-
-      obs' :: ExtMembersContacts <- postWithResponse "ExtMembersContacts" opts url postData
+      obs' <- getExtMembersContacts secrets term section
 
       case obs' of -- TODO: vacuuous case
          obs -> do 
@@ -294,67 +376,26 @@ main = do
           print scoutids
 
           for scoutids $ \scoutid -> do
-            putStrLn $ "Retrieving individual details for: " ++ show scoutid
-            -- from web API:
-            -- https://www.onlinescoutmanager.co.uk/ext/members/contact/?action=getIndividual&sectionid=3943&scoutid=1004107&termid=194058&context=members
-            -- section and term, although seemingly they wouldn't be needed, are mandatory. context is not. so this works:
-            -- https://www.onlinescoutmanager.co.uk/ext/members/contact/?action=getIndividual&sectionid=3943&scoutid=1004107&termid=194058
-
-            -- which means we can only get the information for a member in the context of a Term (the section ID is implied by and contained in the Term) - the data is not identical across sections/terms, although hopefully it is pretty consistent.
-            -- note that there is an "Others" text field listing other sections that the person is associated with - for example, in an Adults term, I am also listed as "1st Merrow: Scouts"
-
-
-
-            let url = "https://www.onlinescoutmanager.co.uk/ext/members/contact/"
-
-            let (ScoutID scoutid_num) = scoutid
-            let opts = defaults & param "action" .~ ["getIndividual"]
-                          & param "termid" .~ [pack $ _termid term]
-                          & param "sectionid" .~ [pack $ _sectionid section]
-                          & param "scoutid" .~ [pack $ show $ scoutid_num]
-
-            let postData = secretPostData secrets
-
-            individual :: EMCGetIndividual <- postWithResponse "EMCGetIndividual" opts url postData
+            individual <- getEMCIndividual secrets term section scoutid
 
             putStrLn "members/contact object decoded"
             putStrLn "Decoded individual response:"
             print individual
 
-            putStrLn $ "Requesting full data for " ++ show scoutid 
-
-            -- section goes into the URL, but scoutid goes into the
-            -- post fields...
-            -- https://www.onlinescoutmanager.co.uk/ext/customdata/?action=getData&section_id=3940
-            let url = "https://www.onlinescoutmanager.co.uk/ext/customdata/"
-
-            let (ScoutID scoutid_num) = scoutid
-            let opts = defaults & param "action" .~ ["getData"]
-                          & param "section_id" .~ [pack $ _sectionid section]
-
-            let postData = secretPostData secrets ++ 
-                     [       "associated_id" := (show $ scoutid_num)
-                           , "associated_type" := ("member" :: String)
-                     ]
-
-
-            extraData :: ExtraData <- postWithResponse "extradata" opts url postData
-            putStrLn "End of extradata block"
-
-
+            extraData <- getExtraData secrets section scoutid
             -- at this point we have a chunk of data about an individual
             -- that we can stick in an SQL database.
 
             execute conn "insert into osm_individuals (scoutid, firstname, lastname, dob) values (?, ?, ?, ?)" 
               (
-                scoutid_num
+                _scoutid scoutid
               , (_firstname . _data) individual
               , (_lastname . _data) individual
               , (_dob . _data) individual
               ) 
             putStrLn "Individual has been written to database."
 
-            execute conn "insert into osm_individual_section (scoutid, sectionid) values (?,?)" (scoutid_num, sectionid)
+            execute conn "insert into osm_individual_section (scoutid, sectionid) values (?,?)" (_scoutid scoutid, sectionid)
 
             putStrLn "Individual section membership has been written to the database"
 
@@ -370,7 +411,7 @@ main = do
   , _value :: String
 -}
                 execute conn "insert into osm_extradata (scoutid, groupid, columnid, varname, label, value) values (?, ?, ?, ?, ?, ?)"
-                  (scoutid_num,
+                  (_scoutid scoutid,
                    groupid,
                    _column_id column,
                    _varname column,
@@ -379,15 +420,7 @@ main = do
                   )
           pure ()
 
-  putStrLn "osmgateway: getting scout camp event"
-
-  let url = "https://www.onlinescoutmanager.co.uk/ext/events/event/?action=getAttendance&eventid=323383&sectionid=3940&termid=194039"
-
-  let postData = secretPostData secrets
-
-  let opts = defaults
-
-  v :: EventAttendeeList <- postWithResponse "event attendee list" opts url postData
+  v <- getEventAttendeeList secrets
 
   print v
 
