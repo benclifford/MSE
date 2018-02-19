@@ -2,4 +2,6 @@ smtpServer: "smtp.example.com"
 smtpPort: "587"
 smtpUser: "you"
 smtpPassword: "yourpass"
+adminUsername: "admin"
+adminPassword: "youradminpass"
 
