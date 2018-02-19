@@ -1,6 +1,5 @@
 module Lib
-    ( someFunc
+    ( User
     ) where
 
-someFunc :: IO ()
-someFunc = putStrLn "someFunc"
+type User = String

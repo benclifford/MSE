@@ -31,10 +31,10 @@ import Text.Digestive.Blaze.Html5 as DB
 
 import Servant
 
-
 import DB
 import DigestiveBits
 import DigestiveServant
+import Lib (User)
 
 
 
@@ -70,14 +70,14 @@ invitationHtml view = do
       DB.inputSubmit "Invite participant" 
 
 
-handleInviteGet :: Handler B.Html
-handleInviteGet = do
+handleInviteGet :: User -> Handler B.Html
+handleInviteGet user = do
   view :: DF.View B.Html <- DF.getForm "Invitation" invitationDigestiveForm
   return (invitationHtml view)
 
 
-handleInvitePost :: [(String, String)] -> Handler B.Html
-handleInvitePost reqBody = do
+handleInvitePost :: [(String, String)] -> User -> Handler B.Html
+handleInvitePost reqBody user = do
   f <- DF.postForm "Invitation" invitationDigestiveForm (servantPathEnv reqBody)
   case f of
     (_, Just value) -> do

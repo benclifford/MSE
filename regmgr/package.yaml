@@ -25,7 +25,9 @@ dependencies:
 library:
   source-dirs: src
   dependencies:
+  - network
   - postgresql-simple
+  - yaml
 
 
 executables:

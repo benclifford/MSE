@@ -36,6 +36,7 @@ import Control.Monad (when)
 
 import Control.Monad.IO.Class (liftIO)
 
+import qualified Data.ByteString.Char8 as BSSC
 import qualified Data.ByteString.Lazy as BS
 
 import qualified Data.Csv as CSV
@@ -43,9 +44,6 @@ import qualified Data.Text as T
 import Data.String (fromString)
 
 import Data.Monoid ( (<>) )
-
-import Data.UUID.V4 (nextRandom)
-import qualified Data.UUID as UUID
 
 import Database.PostgreSQL.Simple as PG
 import Database.PostgreSQL.Simple.Time as PG
@@ -67,11 +65,14 @@ import Text.Digestive ( (.:) )
 
 import Text.Digestive.Blaze.Html5 as DB
 
+import Config
 import DB
 import DBSOP
 import DigestiveBits
 import DigestiveServant
+import Invitation
 import InvitationEmail
+import Lib
 import PDF
 import Registration
 
@@ -91,14 +92,16 @@ type PDFFormAPI = "pdf" :> Capture "auth" String :> Get '[PDF] BS.ByteString
 
 type UnlockAPI = "unlock" :> Capture "auth" String :> Get '[HTML] B.Html
 
-type InviteGetAPI = "admin" :> "invite" :> Get '[HTML] B.Html
-type InvitePostAPI = "admin" :> "invite" :> ReqBody '[FormUrlEncoded] [(String, String)] :> Post '[HTML] B.Html
+type AdminAuth = BasicAuth "regmgr" User
 
-type MailTestAPI = "admin" :> "mailtest" :> Get '[HTML] B.Html
+type InviteGetAPI = "admin" :> "invite" :> AdminAuth :> Get '[HTML] B.Html
+type InvitePostAPI = "admin" :> "invite" :> ReqBody '[FormUrlEncoded] [(String, String)] :> AdminAuth :> Post '[HTML] B.Html
 
-type CSVAPI = "admin" :> "csv" :> Get '[SC.CSV] (Headers '[Header "Content-Disposition" String] [Registration])
+type MailTestAPI = "admin" :> "mailtest" :> AdminAuth :> Get '[HTML] B.Html
 
-type AdminStaticAPI = "admin" :> Get '[HTML] B.Html
+type CSVAPI = "admin" :> "csv" :> AdminAuth :> Get '[SC.CSV] (Headers '[Header "Content-Disposition" String] [Registration])
+
+type AdminStaticAPI = "admin" :> AdminAuth :> Get '[HTML] B.Html
 
 
 -- QUESTION/DISCUSSION: note how when updating this API type, eg to
@@ -394,7 +397,22 @@ handleUpdateForm auth reqBody = do
 regmgrAPI :: Proxy API
 regmgrAPI = Proxy
 
-app = serve regmgrAPI server1
+authcheck :: BasicAuthCheck User
+authcheck =
+  let check (BasicAuthData username password) = do
+        liftIO $ putStrLn "In auth check / BENC"
+        config <- readConfig
+        if  username == BSSC.pack (adminUsername config)
+         && password == BSSC.pack (adminPassword config)
+        then return (Authorized (BSSC.unpack username))
+        else return Unauthorized
+      in BasicAuthCheck check
+
+
+context :: Context (BasicAuthCheck User ': '[])
+context = authcheck Servant.:. EmptyContext
+
+app = serveWithContext regmgrAPI context server1
 
 main :: IO ()
 main = do
@@ -462,89 +480,8 @@ handleUnlock auth = do
   handleInbound auth
 
 
--- ======== invitations ============
--- Invitations by name, rather than from OSM.
-
--- There will be an invitation form for the purposes of
--- digestive-functors; but it won't be stored as such in
--- the database. Instead, it will be used to create a new
--- Registration record in 'N' state.
-
--- TODO: use haskell modules to get rid of inv_ prefix
-data Invitation = Invitation {
-    inv_firstname :: String,
-    inv_lastname :: String
-  }
-
-invitationDigestiveForm :: Monad m => DF.Form B.Html m Invitation
-invitationDigestiveForm = Invitation
-  <$> "firstname" .: nonEmptyString Nothing
-  <*> "lastname" .: nonEmptyString Nothing
-
-invitationHtml :: DF.View B.Html -> B.Html
-invitationHtml view = do
-  B.h1 "Invite new participant manually"
-  B.p "Enter basic details of a new participant here and a registration link will be generated for them to complete"
-  B.form
-    ! BA.action "/admin/invite"
-    ! BA.method "post"
-    $ do
-      B.p $ do
-        DB.label "firstname" view "First name"
-        ": "
-        DB.errorList "firstname" view
-        DB.inputText "firstname" view
-      B.p $ do
-        DB.label "lastname" view "Family name"
-        ": "
-        DB.errorList "lastname" view
-        DB.inputText "lastname" view
-      DB.inputSubmit "Invite participant" 
-
-
-handleInviteGet :: Handler B.Html
-handleInviteGet = do
-  view :: DF.View B.Html <- DF.getForm "Invitation" invitationDigestiveForm
-  return (invitationHtml view)
-
-
-handleInvitePost :: [(String, String)] -> Handler B.Html
-handleInvitePost reqBody = do
-  f <- DF.postForm "Invitation" invitationDigestiveForm (servantPathEnv reqBody)
-  case f of
-    (_, Just value) -> do
-      liftIO $ putStrLn "Invitation validated in digestive functor"
-      auth <- liftIO $ invite value
-      return $ do
-        B.h1 "Invitation submitted"
-        B.p $ "An invitation was generated for " <> (B.toHtml $ inv_firstname value) <> " " <> (B.toHtml $ inv_lastname value)
-        B.p $ do
-          "Please ask the participant to complete the form "
-          (B.a ! BA.href ("/register/" <> fromString auth))
-            "the form at this URL"
-
-    (view, Nothing) -> do
-      liftIO $ putStrLn "Invitation POST did not validate in digestive functor"
-      return (invitationHtml view)
-
-invite :: Invitation -> IO String
-invite inv = do
-
-  uuid <- nextRandom
-  let auth = UUID.toString uuid
-
-  withDB $ \conn -> do
-    [[newDBTime]] :: [[PG.ZonedTimestamp]] <- query conn "SELECT NOW()" ()
-
-    execute conn "INSERT INTO regmgr_attendee (authenticator, state, modified, firstname, lastname) VALUES (?,?,?,?,?)"
-      (auth, "N" :: String, newDBTime, inv_firstname inv, inv_lastname inv)
-
-  return auth
-
-
-
-handleCSV :: Handler (Headers '[Header "Content-Disposition" String] [Registration])
-handleCSV = do
+handleCSV :: User -> Handler (Headers '[Header "Content-Disposition" String] [Registration])
+handleCSV _user = do
   
   registrations :: [Registration] <- selectAll
 
@@ -567,8 +504,8 @@ instance CSV.ToField Bool
 
 
 
-handleAdminStatic :: Handler B.Html
-handleAdminStatic = return $ do
+handleAdminStatic :: User -> Handler B.Html
+handleAdminStatic _user = return $ do
   B.p "Admin page"
   B.p $ (B.a ! BA.href "/admin/invite")
       "Invite new participant"
@@ -577,7 +514,7 @@ handleAdminStatic = return $ do
   
 
 
-handleMailTest :: Handler B.Html
-handleMailTest = do
+handleMailTest :: User -> Handler B.Html
+handleMailTest _user = do
   liftIO $ sendTop
   return $ B.p "mail test response"
