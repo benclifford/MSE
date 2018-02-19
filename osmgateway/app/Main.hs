@@ -403,7 +403,6 @@ main = do
               let groupid = _groupID extraDataGroup
               putStrLn $ "Processing an extra data group: " ++ show groupid
               for (_columns extraDataGroup) $ \column -> do
-                putStrLn "processing column"
   {-
     _column_id :: Integer
   , _varname :: String
@@ -453,7 +452,4 @@ postWithResponse errname opts url postData = do
   let valE = eitherDecode (head bodyL)
   case valE of
     Left err -> error $ "postWithResponse: parsing " ++ errname ++ ": " ++ err
-    Right val -> do
-      putStrLn "Parsed to Haskell: "
-      print val
-      return val
+    Right val -> return val
