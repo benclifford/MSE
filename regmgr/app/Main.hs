@@ -329,9 +329,7 @@ handleUpdateForm auth reqBody = do
         -- write out 'val' to the database
         sqlres <- withDB $ \conn -> do
 
-          -- we'll ask the database for the current time, rather than
-          -- caring about local system time. TODO factor
-          [[newDBTime]] :: [[PG.ZonedTimestamp]] <- liftIO $ query conn "SELECT NOW()" ()
+          newDBTime <- dbNow conn
  
           putStrLn $ "new SQL database time: " ++ show newDBTime
        

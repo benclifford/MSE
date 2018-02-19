@@ -102,7 +102,7 @@ invite inv = do
   let auth = UUID.toString uuid
 
   withDB $ \conn -> do
-    [[newDBTime]] :: [[PG.ZonedTimestamp]] <- query conn "SELECT NOW()" ()
+    newDBTime <- dbNow conn
 
     execute conn "INSERT INTO regmgr_attendee (authenticator, state, modified, firstname, lastname) VALUES (?,?,?,?,?)"
       (auth, "N" :: String, newDBTime, inv_firstname inv, inv_lastname inv)

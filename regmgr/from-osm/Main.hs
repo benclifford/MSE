@@ -53,7 +53,7 @@ addReg conn scoutid = do
       uuid <- UUID.nextRandom
       let auth = UUID.toString uuid
 
-      [[newDBTime]] :: [[PGT.ZonedTimestamp]] <- PG.query conn "SELECT NOW()" ()
+      newDBTime <- dbNow conn
 
       PG.execute conn "INSERT INTO regmgr_attendee (authenticator, state, modified, osm_scoutid, firstname, lastname, dob) VALUES (?,?,?,?,?,?,?)"
         (auth, "M" :: String, newDBTime, scoutid, fn, ln, dob)
