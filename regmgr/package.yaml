@@ -24,6 +24,9 @@ dependencies:
 
 library:
   source-dirs: src
+  dependencies:
+  - postgresql-simple
+
 
 executables:
   regmgr-exe:
@@ -57,6 +60,18 @@ executables:
     - uuid
     - warp
     - yaml
+  regmgr-from-osm:
+    main: Main.hs
+    source-dirs: from-osm
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - regmgr
+    - postgresql-simple
+    - random
+    - uuid
 
 tests:
   regmgr-test:

@@ -414,6 +414,9 @@ registrationDigestiveForm init = Registration
   <*> "modified" .: (read <$> (DF.string (Just $ show $ modified init))) -- BUG: ignores modified time from client! which means OCC is broken as we always default to the latest version and so mostly don't ever hit a conflict. And the problem here is that we need to serialise it out to a form field and then parse it back in later, which is troublesome.
   <*> "invite_email" .: DF.string (Just $ invite_email init)
 
+  -- security bug here maybe: if I fake a form response, I can send in a new osm_scoutid, and make my record be attached to a different OSM record. Which at present would impede the real owner of that record being invited if they had not already been invited.
+  <*> "osm_scoutid" .: DF.optionalStringRead "OSM scout ID" (osm_scoutid init)
+
   <*> "firstname" .: DF.string (Just $ firstname init)
   <*> "lastname" .: DF.string (Just $ lastname init)
   <*> "dob" .: nonEmptyString (Just $ dob init)

@@ -15,6 +15,7 @@ data Registration = Registration {
     state :: String,
     modified :: PG.ZonedTimestamp, -- TODO: debate with self about whether modified should be in the Registration or not as it isn't a traditional "editable" field but instead metadata about the record (like the primary key)
     invite_email :: String,
+    osm_scoutid :: Maybe Integer,
 
     firstname :: String,
     lastname :: String,
