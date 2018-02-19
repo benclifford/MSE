@@ -36,3 +36,12 @@ CREATE TABLE osm_extradata (
     label TEXT,
     value TEXT
   );
+
+DROP TABLE IF EXISTS osm_event_attendee;
+
+CREATE TABLE osm_event_attendee ( 
+  id SERIAL PRIMARY KEY,
+  eventid INTEGER,
+  scoutid INTEGER,
+  attending TEXT
+);

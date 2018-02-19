@@ -29,7 +29,7 @@ osmgateway - imports data from OSM live service to local cache tables
    permissions dialog lives in "Account", it edits permissions for
    your account in that section only.
 
-4. run osmgateway-exe to run whatever functionality has been
+4. run osmgateway-import to run whatever functionality has been
    implemented so far.
 
 

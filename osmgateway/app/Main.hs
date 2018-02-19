@@ -8,7 +8,7 @@ import Control.Lens
 import Data.Aeson
 import Data.Aeson.Types (typeMismatch, parseEither)
 import Data.HashMap.Lazy (HashMap)
-import Data.Text (pack)
+import Data.Text (unpack, pack)
 import qualified Data.HashMap.Lazy as HM
 import Data.Traversable (for)
 import Database.PostgreSQL.Simple
@@ -151,8 +151,35 @@ instance FromJSON ExtraDataGroupColumn where
    <*> hm .: "label"
    <*> hm .: "value"
 
-newtype ScoutID = ScoutID Integer
+data EventAttendeeList = EventAttendeeList {
+    _eaeventid :: String
+  , _eaitems :: [EventAttendee]
+  } deriving Show
+
+instance FromJSON EventAttendeeList where
+  parseJSON (Object o) =
+    EventAttendeeList
+    <$> o .: "eventid"
+    <*> o .: "items"
+
+data EventAttendee = EventAttendee {
+    _eascoutid :: ScoutID
+  , _eaattending :: String
+  } deriving Show
+
+instance FromJSON EventAttendee where
+  parseJSON (Object o) =
+    EventAttendee
+    <$> o .: "scoutid"
+    <*> o .: "attending"
+
+
+newtype ScoutID = ScoutID { _scoutid :: Integer }
   deriving Show
+
+instance FromJSON ScoutID where
+  parseJSON (String t) = return (ScoutID (read (unpack t)))
+  parseJSON v = ScoutID <$> (parseJSON v)
 
 main :: IO ()
 main = do
@@ -164,7 +191,6 @@ main = do
   putStrLn "authorisation secrets:"
   secrets <- read <$> readFile "secrets.dat" :: IO Secrets
   print secrets
-
 
   -- this gives a list of terms, but that's not what I want
   -- ... I want section info. I can grab section IDs out of
@@ -366,6 +392,34 @@ main = do
                   )
           pure ()
 
+  putStrLn "osmgateway: getting scout camp event"
+
+  let url = "https://www.onlinescoutmanager.co.uk/ext/events/event/?action=getAttendance&eventid=323383&sectionid=3940&termid=194039"
+
+  let postData = [ "userid" := _userid secrets
+                 , "secret" := _secret secrets  
+                 , "apiid" := _apiId secrets
+                 , "token" := _token secrets
+                 ]
+
+  let opts = defaults
+
+  v :: EventAttendeeList <- postWithResponse "event attendee list" opts url postData
+
+  print v
+
+  for (_eaitems v) $ \attendee -> do
+    putStrLn $ "Scout " ++ (show $ _eascoutid attendee) ++ " is listed on " ++ (_eaeventid v) ++ " as: " ++ (_eaattending attendee)
+
+    execute conn "insert into osm_event_attendee (eventid, scoutid, attending) values (?,?,?)"
+      (
+        _eaeventid v
+      , _scoutid $ _eascoutid attendee
+      , _eaattending attendee
+      ) 
+    putStrLn "Attendee has been written to database."
+
+
   putStrLn "Closing database"
   close conn
   putStrLn "osmgateway finished"
@@ -376,6 +430,9 @@ postWithResponse ::
   => String -> WReq.Options -> String -> postable -> IO resp
 postWithResponse errname opts url postData = do
   r <- postWith opts url postData
+
+  -- useful for debugging: print r
+
   let bodyL = r ^.. responseBody -- this is a list but I'm going to assume it only has one element BUG
   let valE = eitherDecode (head bodyL)
   case valE of
