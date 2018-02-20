@@ -120,8 +120,8 @@ type API = PingAPI :<|> InboundAuthenticatorAPI
       :<|> MailTestAPI
 
 server1 :: Server API
-server1 = handlePing :<|> handleInbound :<|> handleHTMLPing
-  :<|> handleUpdateForm
+server1 = handlePing :<|> handleRegistrationGet :<|> handleHTMLPing
+  :<|> handleRegistrationPost
   :<|> handlePDFForm
   :<|> handleUnlock
   :<|> handleInviteGet
@@ -141,8 +141,8 @@ handleHTMLPing = return $ B.docTypeHtml $ do
     B.h1 "Ping response"
     B.p "ok"
 
-handleInbound :: String -> Handler B.Html
-handleInbound auth = do
+handleRegistrationGet :: String -> Handler B.Html
+handleRegistrationGet auth = do
   liftIO $ putStrLn $ "handleInbound called, authenticator=" ++ auth
 
   -- we can switch in different ways here:
@@ -308,8 +308,8 @@ readonlyInputBool ref view = B.toHtml $ DF.fieldInputBool ref view
 
 
 
-handleUpdateForm :: String -> [(String,String)] -> Handler B.Html
-handleUpdateForm auth reqBody = do
+handleRegistrationPost :: String -> [(String,String)] -> Handler B.Html
+handleRegistrationPost auth reqBody = do
 
   entry :: [Registration] <- selectByAuthenticator auth
 
@@ -475,7 +475,7 @@ handleUnlock auth = do
 
   withDB $ \conn -> execute conn "UPDATE regmgr_attendee SET state = ? WHERE authenticator = ?" ("N" :: String, auth)
 
-  handleInbound auth
+  handleRegistrationGet auth
 
 
 handleCSV :: User -> Handler (Headers '[Header "Content-Disposition" String] [Registration])
