@@ -400,8 +400,10 @@ main = do
             putStrLn "Individual section membership has been written to the database"
 
             for (_groups extraData) $ \extraDataGroup -> do
-              let groupid = _groupID extraDataGroup
-              putStrLn $ "Processing an extra data group: " ++ show groupid
+              putStrLn $ "Processing an extra data group _groupID: " ++ show (_groupID extraDataGroup)
+              putStrLn $ "                            _identifier: " ++ _identifier extraDataGroup
+              putStrLn $ "                                  _name: " ++ _name extraDataGroup
+
               for (_columns extraDataGroup) $ \column -> do
   {-
     _column_id :: Integer
@@ -409,9 +411,10 @@ main = do
   , _label :: String
   , _value :: String
 -}
-                execute conn "insert into osm_extradata (scoutid, groupid, columnid, varname, label, value) values (?, ?, ?, ?, ?, ?)"
+                execute conn "insert into osm_extradata (scoutid, groupid, group_text_identifier, columnid, varname, label, value) values (?, ?, ?, ?, ?, ?, ?)"
                   (_scoutid scoutid,
-                   groupid,
+                   _groupID extraDataGroup,
+                   _identifier extraDataGroup,
                    _column_id column,
                    _varname column,
                    _label column,
