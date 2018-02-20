@@ -41,9 +41,9 @@ Last Name: \field{{lastname}}
 \hfill
 Date of Birth: \field{{dob}}
 
-Address: \field{{TODO}}
+Address: \field{+registrant-address+}
 
-Telephone: \field{{TODO}}
+Telephone: \field{+registrant-telephone+}
 \hfill
 Section: \field{Scouts/TODO}
 

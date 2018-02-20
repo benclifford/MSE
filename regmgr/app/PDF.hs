@@ -55,6 +55,9 @@ handlePDFForm auth = do
   sed "lastname" lastname
   sed "dob" dob
 
+  sed "registrant-address" registrant_address
+  sed "registrant-telephone" registrant_telephone
+
   sed "ec-1-name" ec_1_name
   sed "ec-1-relationship" ec_1_relationship
   sed "ec-1-address" ec_1_address

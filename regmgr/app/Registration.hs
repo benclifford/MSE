@@ -20,6 +20,8 @@ data Registration = Registration {
     firstname :: String,
     lastname :: String,
     dob :: String,
+    registrant_address :: String,
+    registrant_telephone :: String,
     ec_1_name :: String,
     ec_1_relationship :: String,
     ec_1_address :: String,

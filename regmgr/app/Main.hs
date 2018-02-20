@@ -229,6 +229,8 @@ regformHtml auth view editable = do
 
               textInputParagraph editable "firstname" view "First name"
               textInputParagraph editable "lastname" view "Family name"
+              textInputParagraph editable "registrant_address" view "Address"
+              textInputParagraph editable "registrant_telephone" view "Telephone"
 
               -- QUESTION/DISCUSSION: this could be a date picker on the client side in javascript?
               textInputParagraph editable "dob" view "Date of Birth"
@@ -432,6 +434,8 @@ registrationDigestiveForm init = Registration
   <*> "firstname" .: DF.string (Just $ firstname init)
   <*> "lastname" .: DF.string (Just $ lastname init)
   <*> "dob" .: nonEmptyString (Just $ dob init)
+  <*> "registrant_address" .: DF.string (Just $ registrant_address init)
+  <*> "registrant_telephone" .: DF.string (Just $ registrant_telephone init)
 
   <*> "ec_1_name" .: DF.string (Just $ ec_1_name init)
   <*> "ec_1_relationship" .: DF.string (Just $ ec_1_relationship init)
