@@ -357,25 +357,7 @@ handleRegistrationPost auth reqBody = do
           return r
 
         if sqlres == 1
-          then return $ -- success
-            B.docTypeHtml $ do
-              B.head $ do
-                B.title title
-              B.body $ do
-                B.h1 title
-                B.p $ do
-                  "Next steps: "
-                  (B.a ! BA.href ("/pdf/" <> fromString auth))
-                    "please print out and sign the permission form"
-                  ", and then give it to a leader with payment."
-                B.p "debug: handleUpdateForm - there are no errors"
-                B.p $ do
-                  "debug: "
-                  B.toHtml $ show val
-                B.p $ do
-                  "debug: "
-                  (B.a ! BA.href ("/unlock/" <> fromString auth))
-                    "admin mode: unlock this participant for further edits"
+          then handleRegistrationGet auth
           else -- failure due to database error
             return $ B.docTypeHtml $ do
               B.head $ do
