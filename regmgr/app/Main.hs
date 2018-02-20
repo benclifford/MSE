@@ -224,46 +224,46 @@ regformHtml auth view editable = do
               DB.inputHidden "authenticator" view
               DB.inputHidden "modified" view
 
-              textInputParagraph editable "firstname" view "First name"
-              textInputParagraph editable "lastname" view "Family name"
-              textInputParagraph editable "registrant_address" view "Address"
-              textInputParagraph editable "registrant_telephone" view "Telephone"
+              textInputLineParagraph editable "firstname" view "First name"
+              textInputLineParagraph editable "lastname" view "Family name"
+              textInputLineParagraph editable "registrant_address" view "Address"
+              textInputLineParagraph editable "registrant_telephone" view "Telephone"
 
               -- QUESTION/DISCUSSION: this could be a date picker on the client side in javascript?
-              textInputParagraph editable "dob" view "Date of Birth"
+              textInputLineParagraph editable "dob" view "Date of Birth"
               B.hr
               B.p "Emergency Contact 1"
-              textInputParagraph editable "ec_1_name" view "Name"
-              textInputParagraph editable "ec_1_relationship" view "Relationship"
-              textInputParagraph editable "ec_1_address" view "Address"
-              textInputParagraph editable "ec_1_telephone" view "Telephone"
-              textInputParagraph editable "ec_1_mobile" view "Mobile telephone"
+              textInputLineParagraph editable "ec_1_name" view "Name"
+              textInputLineParagraph editable "ec_1_relationship" view "Relationship"
+              textInputLineParagraph editable "ec_1_address" view "Address"
+              textInputLineParagraph editable "ec_1_telephone" view "Telephone"
+              textInputLineParagraph editable "ec_1_mobile" view "Mobile telephone"
 
               B.hr
               B.p "Emergency Contact 2"
-              textInputParagraph editable "ec_2_name" view "Name"
-              textInputParagraph editable "ec_2_relationship" view "Relationship"
-              textInputParagraph editable "ec_2_address" view "Address"
-              textInputParagraph editable "ec_2_telephone" view "Telephone"
-              textInputParagraph editable "ec_2_mobile" view "Mobile telephone"
+              textInputLineParagraph editable "ec_2_name" view "Name"
+              textInputLineParagraph editable "ec_2_relationship" view "Relationship"
+              textInputLineParagraph editable "ec_2_address" view "Address"
+              textInputLineParagraph editable "ec_2_telephone" view "Telephone"
+              textInputLineParagraph editable "ec_2_mobile" view "Mobile telephone"
 
               B.hr
               B.p "Doctor / GP"
-              textInputParagraph editable "doctor_name" view "Name"
-              textInputParagraph editable "doctor_address" view "Address"
-              textInputParagraph editable "doctor_telephone" view "Telephone"
+              textInputLineParagraph editable "doctor_name" view "Name"
+              textInputLineParagraph editable "doctor_address" view "Address"
+              textInputLineParagraph editable "doctor_telephone" view "Telephone"
 
               B.hr
               boolInputParagraph editable "swim" view "Can participant swim?"
               boolInputParagraph editable "vegetarian" view "Is participant vegetarian?"
               B.hr
               B.p "Medical information"
-              textInputParagraph editable "tetanus_date" view "Date of last tetanus"
-              textInputParagraph editable "diseases" view "Details of any infections/diseases"
-              textInputParagraph editable "allergies" view "Details of any allergies"
-              textInputParagraph editable "medication_diet" view "Details of any medication or medical diets"
-              textInputParagraph editable "dietary_reqs" view "Details of any dietary requirements"
-              textInputParagraph editable "faith_needs" view "Details of any faith/cultural needs (eg dress, diet, holy days, toilet arrangements)"
+              textInputLineParagraph editable "tetanus_date" view "Date of last tetanus"
+              textInputAreaParagraph editable "diseases" view "Details of any infections/diseases"
+              textInputAreaParagraph editable "allergies" view "Details of any allergies"
+              textInputAreaParagraph editable "medication_diet" view "Details of any medication or medical diets"
+              textInputAreaParagraph editable "dietary_reqs" view "Details of any dietary requirements"
+              textInputAreaParagraph editable "faith_needs" view "Details of any faith/cultural needs (eg dress, diet, holy days, toilet arrangements)"
              
 
               when editable $ DB.inputSubmit "Register for event"
@@ -283,7 +283,7 @@ boolInputParagraph editable fieldName view description =
                 readonlyInputBool fieldName view
 
 
-textInputParagraph editable fieldName view description = 
+textInputLineParagraph editable fieldName view description = 
   if editable
     then      B.p $ do
                 DB.label fieldName view description
@@ -295,6 +295,20 @@ textInputParagraph editable fieldName view description =
                 ": "
                 DB.errorList fieldName view
                 readonlyInputText fieldName view
+
+textInputAreaParagraph editable fieldName view description = 
+  if editable
+    then do B.p $ do
+                DB.label fieldName view description
+                ": "
+                DB.errorList fieldName view
+            B.p $ DB.inputTextArea (Just 8) (Just 80) fieldName view
+    else do B.p $ do
+                DB.label fieldName view description
+                ": "
+                DB.errorList fieldName view
+            B.p $ readonlyInputText fieldName view
+
 
 -- | loosely based on inputText source
 readonlyInputText :: T.Text -> DF.View v -> B.Html

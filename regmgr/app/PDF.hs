@@ -171,6 +171,8 @@ escapeLatex :: String -> String
 escapeLatex v = concat $ map c v
   where
     c '&' = "\\&"
+    c '\r' = ""
+    c '\n' = " \\newline "
     c anything = [anything]
 
 -- from postgres-simple-sop
