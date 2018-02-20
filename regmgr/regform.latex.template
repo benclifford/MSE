@@ -5,11 +5,11 @@
 
 \newcommand{\field}[1]{\texttt{\textbf{#1}}}
 
-\newcommand{\pronoun}[0]{he/she/they/TODO }
+\newcommand{\pronoun}[0]{they}
 
-\newcommand{\offspring}[0]{son/daughter/TODO2 }
+\newcommand{\offspring}[0]{son/daughter}
 
-\newcommand{\possessive}[0]{his/her/their/TODO3 }
+\newcommand{\possessive}[0]{their}
 
 \setlength{\parindent}{0ex}
 
@@ -101,21 +101,21 @@ Date of last tetanus injection: \field{<@ tetanus_date @>}
 
 \begin{tabular}{p{11.5cm} | p{5.5cm} }
 \hline
-Any known infectious diseases with which \pronoun has been in
+Any known infectious diseases with which \pronoun have been in
 contact within the month previous to the signing of this form
 (e.g. Chicken Pox, Diptheria, Measles, Mumps, Rubella, Whooping Cough,
-Diarrhoea, Vomiting, etc):
+Diarrhoea, Vomiting):
 &
 \field{<@ diseases @>}  \\
 \hline
-Any Known Allerges / Sensitivities / Disabilities / Medical Conditions
+Any known allerges / sensitivities / disabilities / medical Conditions
 and details of any known precautions or remedies (e.g. Penicillin,
-Food Colourings, Travel Sickness, Bed-wetting, Period Pains, Asthma
-etc): &
+food colourings, travel sickness, bed-wetting, period pains, asthma):
+&
 \field{<@ allergies @>} \\
 \hline
 
-If \pronoun has to take any medications, the bottle(s), tube(s) or other
+If \pronoun have to take any medications, the bottle(s), tube(s) or other
 items should be clearly labelled with \possessive name and exact dosages. The
 Scout Leader should be informed beforehand and handed any
 medication upon arrival. \\
@@ -127,7 +127,7 @@ medicines. Please state whether \pronoun will self medicate, what
 condition is being treated, and the specialist / hospital concerned
 if appropriate: & \field{<@ medication_diet @>} \\
 \hline
-Is \pronoun a vegetarian? & \field{<@ vegetarian @>} \\
+Are \pronoun a vegetarian? & \field{<@ vegetarian @>} \\
 
 
 \hline
