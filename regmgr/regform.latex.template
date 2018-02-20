@@ -89,7 +89,7 @@ Telephone number: \field{<@ doctor_telephone @>}
 
 Activity authorisation
 
-Is participant allowed to participate in general activities? \field{TODO}
+Is participant allowed to participate in general activities? \field{<@ general_activities @>}
 
 Can participant swim 50 metres? \field{<@ swim @>}
 

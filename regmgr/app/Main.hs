@@ -254,6 +254,7 @@ regformHtml auth view editable = do
               textInputLineParagraph editable "doctor_telephone" view "Telephone"
 
               B.hr
+              boolInputParagraph editable "general_activities" view "Is participant allowed to participate in adventurous activities?"
               boolInputParagraph editable "swim" view "Can participant swim?"
               boolInputParagraph editable "vegetarian" view "Is participant vegetarian?"
               B.hr
@@ -464,6 +465,7 @@ registrationDigestiveForm init = Registration
   <*> "doctor_address" .: DF.string (Just $ doctor_address init)
   <*> "doctor_telephone" .: DF.string (Just $ doctor_telephone init)
 
+  <*> "general_activities" .: DF.bool (Just $ general_activities init)  
   <*> "swim" .: DF.bool (Just $ swim init)  
   <*> "vegetarian" .: DF.bool (Just $ vegetarian init)
 
