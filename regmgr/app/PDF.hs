@@ -163,7 +163,9 @@ instance ShowForLatex PGT.ZonedTimestamp
 
 instance ShowForLatex (Maybe Integer)
 
-instance ShowForLatex Bool
+instance ShowForLatex Bool where
+  showForLatex True = "Yes"
+  showForLatex False = "No"
 
 escapeLatex :: String -> String
 escapeLatex v = concat $ map c v
