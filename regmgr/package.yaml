@@ -74,6 +74,7 @@ executables:
     - postgresql-simple
     - random
     - uuid
+    - text
 
 tests:
   regmgr-test:

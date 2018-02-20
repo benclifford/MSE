@@ -6,6 +6,7 @@ module Main where
 
 import Data.List (intersperse)
 
+import qualified Data.Text as T
 import Data.Traversable (for)
 import Data.UUID as UUID
 import Data.UUID.V4 as UUID
@@ -68,7 +69,7 @@ addReg conn scoutid = do
 
       doctor_fullname <- getExtraDataFullname conn scoutid "doctor"
       doctor_surgery <- getExtraDataField conn scoutid "doctor" "surgery"
-      let doctor_name = concat $ intersperse "," $ (filter (/= "")) [doctor_fullname, doctor_surgery]
+      let doctor_name = commaSeparatedConcat [doctor_fullname, doctor_surgery]
       doctor_address <- getExtraDataAddress conn scoutid "doctor"
       doctor_telephone <- getExtraDataPhone conn scoutid "doctor"
 
@@ -99,7 +100,7 @@ getExtraDataAddress conn scoutid group = do
   a3 <- getExtraDataField conn scoutid group "address3"
   a4 <- getExtraDataField conn scoutid group "address4"
   ap <- getExtraDataField conn scoutid group "postcode"
-  return $ concat $ intersperse ", " $ (filter (/= "")) $ [a1, a2, a3, a4, ap]
+  return $ commaSeparatedConcat $ [a1, a2, a3, a4, ap]
 
 getExtraDataPhone :: PG.Connection -> Integer -> String -> IO String
 getExtraDataPhone conn scoutid group = do
@@ -117,3 +118,6 @@ getExtraDataFullname conn scoutid group = do
   ln <- getExtraDataField conn scoutid group "lastname"
   return $ fn ++ " " ++ ln
 
+commaSeparatedConcat :: [String] -> String
+commaSeparatedConcat l = concat $ intersperse ", " $ (filter (/= "")) $ map trim l
+  where trim s = T.unpack $ T.strip $ T.pack s
