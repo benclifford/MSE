@@ -143,7 +143,6 @@ handleHTMLPing = return $ B.docTypeHtml $ do
 
 handleRegistrationGet :: String -> Handler B.Html
 handleRegistrationGet auth = do
-  liftIO $ putStrLn $ "handleInbound called, authenticator=" ++ auth
 
   -- we can switch in different ways here:
   -- * if the UUID does not exist or it exists more than once,
@@ -185,7 +184,6 @@ handleRegistrationGet auth = do
             B.title title
           B.body $ do
             B.h1 title
-            B.p "debug: handleInbound"
             regformHtml auth view editable
 
   liftIO $ putStrLn "end of req"
@@ -207,16 +205,15 @@ regformHtml auth view editable = do
             if editable
               then B.p "Please fill out this registration form. We have put information that we know already into the form, but please check and correct those if that information is wrong."
               else do
-                B.p "This is the information held for this attendee. Please contact your section leader if any of this information is incorrect."
+                B.p "This is the information held for this attendee. Please edit and re-print this if information is incorrect."
                 B.p $ do
                   "If you have not done so already, "
                   (B.a ! BA.href ("/pdf/" <> fromString auth))
                     "please print out and sign the permission form"
                   "."
                 B.p $ do
-                  "debug: "
                   (B.a ! BA.href ("/unlock/" <> fromString auth))
-                    "admin mode: unlock this participant for further edits"
+                    "Edit this form again - ***REMEMBER YOU WILL NEED TO PRINT AND SIGN A NEW COPY WITH ANY CHANGES***"
 
             -- QUESTION/DISCUSSION: type_ has to have a different name with an underscore because type is a reserved word.
             B.form ! BA.action ("/register/" <> (fromString auth))
@@ -264,7 +261,7 @@ regformHtml auth view editable = do
               textInputParagraph editable "tetanus_date" view "Date of last tetanus"
               textInputParagraph editable "diseases" view "Details of any infections/diseases"
               textInputParagraph editable "allergies" view "Details of any allergies"
-              textInputParagraph editable "medication_diet" view "Details of any dietary requirements"
+              textInputParagraph editable "medication_diet" view "Details of any medication or medical diets"
               textInputParagraph editable "dietary_reqs" view "Details of any dietary requirements"
               textInputParagraph editable "faith_needs" view "Details of any faith/cultural needs (eg dress, diet, holy days, toilet arrangements)"
              
