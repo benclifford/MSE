@@ -1,7 +1,10 @@
 {-# Language OverloadedStrings #-}
 {-# Language ScopedTypeVariables #-}
+{-# Language MultiWayIf #-}
 
 module Main where
+
+import Data.List (intersperse)
 
 import Data.Traversable (for)
 import Data.UUID as UUID
@@ -55,10 +58,33 @@ addReg conn scoutid = do
 
       newDBTime <- dbNow conn
 
-      PG.execute conn "INSERT INTO regmgr_attendee (authenticator, state, modified, osm_scoutid, firstname, lastname, dob) VALUES (?,?,?,?,?,?,?)"
-        (auth, "M" :: String, newDBTime, scoutid, fn, ln, dob)
+      a1 <- getExtraDataField conn scoutid "contact_primary_member" "address1"
+      a2 <- getExtraDataField conn scoutid "contact_primary_member" "address2"
+      a3 <- getExtraDataField conn scoutid "contact_primary_member" "address3"
+      a4 <- getExtraDataField conn scoutid "contact_primary_member" "address4"
+      ap <- getExtraDataField conn scoutid "contact_primary_member" "postcode"
+
+      let registrant_address = concat $ intersperse ", " $ (filter (/= "")) $ [a1, a2, a3, a4, ap]
+
+      p1 <- getExtraDataField conn scoutid "contact_primary_member" "phone1"
+      p2 <- getExtraDataField conn scoutid "contact_primary_member" "phone2"
+      let registrant_telephone =
+            if | p1 /= "" && p2 == "" -> p1
+               | p1 == "" && p2 /= "" -> p2
+               | p1 /= "" && p2 /= "" -> p1 ++ " / " ++ p2
+
+      PG.execute conn "INSERT INTO regmgr_attendee (authenticator, state, modified, osm_scoutid, firstname, lastname, dob, registrant_address, registrant_telephone) VALUES (?,?,?,?,?,?,?,?,?)"
+        (auth, "M" :: String, newDBTime, scoutid, fn, ln, dob, registrant_address, registrant_telephone)
       putStrLn "Inserted"
 
 
     wrong -> error $ "Bad data from addReq query: " ++ show wrong
+
+getExtraDataField :: PG.Connection -> Integer -> String -> String -> IO String
+getExtraDataField conn scoutid group field = do
+  mv <- PG.query conn "SELECT DISTINCT value FROM osm_extradata WHERE scoutid = ? AND group_text_identifier = ? AND varname = ?" (scoutid, group, field)
+  case mv of
+    [[v]] -> return v
+    [] -> return ""
+    wrong -> error $ "getExtraDataField: unexpected multiple values: " ++ show wrong
 
