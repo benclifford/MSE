@@ -39,8 +39,6 @@ First Name: \field{{firstname}}
 \hfill
 Last Name: \field{{lastname}}
 \hfill
-Gender: \field{{TODO}}
-\hfill
 Date of Birth: \field{{dob}}
 
 Address: \field{{TODO}}
