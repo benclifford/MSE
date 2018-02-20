@@ -58,20 +58,8 @@ addReg conn scoutid = do
 
       newDBTime <- dbNow conn
 
-      a1 <- getExtraDataField conn scoutid "contact_primary_member" "address1"
-      a2 <- getExtraDataField conn scoutid "contact_primary_member" "address2"
-      a3 <- getExtraDataField conn scoutid "contact_primary_member" "address3"
-      a4 <- getExtraDataField conn scoutid "contact_primary_member" "address4"
-      ap <- getExtraDataField conn scoutid "contact_primary_member" "postcode"
-
-      let registrant_address = concat $ intersperse ", " $ (filter (/= "")) $ [a1, a2, a3, a4, ap]
-
-      p1 <- getExtraDataField conn scoutid "contact_primary_member" "phone1"
-      p2 <- getExtraDataField conn scoutid "contact_primary_member" "phone2"
-      let registrant_telephone =
-            if | p1 /= "" && p2 == "" -> p1
-               | p1 == "" && p2 /= "" -> p2
-               | p1 /= "" && p2 /= "" -> p1 ++ " / " ++ p2
+      registrant_address <- getExtraDataAddress conn scoutid "contact_primary_member"
+      registrant_telephone <- getExtraDataPhone conn scoutid "contact_primary_member"
 
       PG.execute conn "INSERT INTO regmgr_attendee (authenticator, state, modified, osm_scoutid, firstname, lastname, dob, registrant_address, registrant_telephone) VALUES (?,?,?,?,?,?,?,?,?)"
         (auth, "M" :: String, newDBTime, scoutid, fn, ln, dob, registrant_address, registrant_telephone)
@@ -87,4 +75,23 @@ getExtraDataField conn scoutid group field = do
     [[v]] -> return v
     [] -> return ""
     wrong -> error $ "getExtraDataField: unexpected multiple values: " ++ show wrong
+
+getExtraDataAddress :: PG.Connection -> Integer -> String -> IO String
+getExtraDataAddress conn scoutid group = do
+  a1 <- getExtraDataField conn scoutid group "address1"
+  a2 <- getExtraDataField conn scoutid group "address2"
+  a3 <- getExtraDataField conn scoutid group "address3"
+  a4 <- getExtraDataField conn scoutid group "address4"
+  ap <- getExtraDataField conn scoutid group "postcode"
+  return $ concat $ intersperse ", " $ (filter (/= "")) $ [a1, a2, a3, a4, ap]
+
+getExtraDataPhone :: PG.Connection -> Integer -> String -> IO String
+getExtraDataPhone conn scoutid group = do
+  p1 <- getExtraDataField conn scoutid group "phone1"
+  p2 <- getExtraDataField conn scoutid group "phone2"
+  let telephone =
+        if | p1 /= "" && p2 == "" -> p1
+           | p1 == "" && p2 /= "" -> p2
+           | p1 /= "" && p2 /= "" -> p1 ++ " / " ++ p2
+  return telephone
 
