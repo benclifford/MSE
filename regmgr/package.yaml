@@ -46,6 +46,7 @@ executables:
     - cassava
     - digestive-functors
     - digestive-functors-blaze
+    - ede
     - generics-sop
     - HaskellNet
     - HaskellNet-SSL
