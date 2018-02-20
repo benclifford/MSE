@@ -5,11 +5,11 @@
 
 \newcommand{\field}[1]{\texttt{\textbf{#1}}}
 
-\newcommand{\pronoun}[0]{they}
+\newcommand{\pronoun}[0]{they }
 
-\newcommand{\offspring}[0]{son/daughter}
+\newcommand{\offspring}[0]{son/daughter }
 
-\newcommand{\possessive}[0]{their}
+\newcommand{\possessive}[0]{their }
 
 \setlength{\parindent}{0ex}
 
@@ -99,7 +99,7 @@ Medical information
 
 Date of last tetanus injection: \field{<@ tetanus_date @>}
 
-\begin{tabular}{p{11.5cm} | p{5.5cm} }
+\begin{tabular*}{\textwidth}{@{} p{11cm} | p{6cm} @{}}
 \hline
 Any known infectious diseases with which \pronoun have been in
 contact within the month previous to the signing of this form
@@ -138,7 +138,7 @@ Details of dietary requirements eg medical or religious: &
 Details of faith or cultural needs eg dress, diet, holy days, toilet arrangements: &
 \field{<@ faith_needs @>}  \\
 \hline
-\end{tabular}
+\end{tabular*}
 
 \hrulefill
 
