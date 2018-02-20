@@ -11,6 +11,7 @@ import Data.UUID as UUID
 import Data.UUID.V4 as UUID
 
 import qualified Database.PostgreSQL.Simple as PG
+import Database.PostgreSQL.Simple
 import qualified Database.PostgreSQL.Simple.Time as PGT
 
 import DB
@@ -61,8 +62,23 @@ addReg conn scoutid = do
       registrant_address <- getExtraDataAddress conn scoutid "contact_primary_member"
       registrant_telephone <- getExtraDataPhone conn scoutid "contact_primary_member"
 
-      PG.execute conn "INSERT INTO regmgr_attendee (authenticator, state, modified, osm_scoutid, firstname, lastname, dob, registrant_address, registrant_telephone) VALUES (?,?,?,?,?,?,?,?,?)"
-        (auth, "M" :: String, newDBTime, scoutid, fn, ln, dob, registrant_address, registrant_telephone)
+      ec_1_address <- getExtraDataAddress conn scoutid "emergency"
+      ec_1_telephone <- getExtraDataPhone conn scoutid "emergency"
+      ec_1_name <- getExtraDataFullname conn scoutid "emergency"
+
+      doctor_fullname <- getExtraDataFullname conn scoutid "doctor"
+      doctor_surgery <- getExtraDataField conn scoutid "doctor" "surgery"
+      let doctor_name = concat $ intersperse "," $ (filter (/= "")) [doctor_fullname, doctor_surgery]
+      doctor_address <- getExtraDataAddress conn scoutid "doctor"
+      doctor_telephone <- getExtraDataPhone conn scoutid "doctor"
+
+      PG.execute conn "INSERT INTO regmgr_attendee (authenticator, state, modified, osm_scoutid, firstname, lastname, dob, registrant_address, registrant_telephone, ec_1_name, ec_1_address, ec_1_telephone, doctor_name, doctor_address, doctor_telephone) VALUES (?,?,?,?,?,?,?,?,?,?,?,?, ?,?,?)"
+        ( (auth, "M" :: String, newDBTime, scoutid, fn, ln, dob)
+       :. (registrant_address, registrant_telephone)
+       :. (ec_1_name, ec_1_address, ec_1_telephone)
+       :. (doctor_name, doctor_address, doctor_telephone)
+        )
+
       putStrLn "Inserted"
 
 
@@ -94,4 +110,10 @@ getExtraDataPhone conn scoutid group = do
            | p1 == "" && p2 /= "" -> p2
            | p1 /= "" && p2 /= "" -> p1 ++ " / " ++ p2
   return telephone
+
+getExtraDataFullname :: PG.Connection -> Integer -> String -> IO String
+getExtraDataFullname conn scoutid group = do
+  fn <- getExtraDataField conn scoutid group "firstname"
+  ln <- getExtraDataField conn scoutid group "lastname"
+  return $ fn ++ " " ++ ln
 
