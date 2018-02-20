@@ -107,8 +107,8 @@ Diarrhoea, Vomiting):
 &
 \field{<@ diseases @>}  \\
 \hline
-Any known allerges / sensitivities / disabilities / medical Conditions
-and details of any known precautions or remedies (e.g. Penicillin,
+Any known allerges / sensitivities / disabilities / medical conditions
+and details of any precautions or remedies (e.g. Penicillin,
 food colourings, travel sickness, bed-wetting, period pains, asthma):
 &
 \field{<@ allergies @>} \\
