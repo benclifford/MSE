@@ -27,16 +27,15 @@ data OptionalTextValue = OptionalTextValue {
 -- if you've chosen False then s must be empty.
 -- validation interaction between two
 innerOptionalTextForm :: Monad m => Maybe String -> DF.Form B.Html m OptionalTextValue
-innerOptionalTextForm def = case def of
-  Nothing ->  OptionalTextValue
-    <$> "disclose" .: DF.bool Nothing
-    <*> "declaration" .: DF.string Nothing
-  Just "" -> OptionalTextValue
-    <$> "disclose" .: DF.bool (Just False)
-    <*> "declaration" .: DF.string (Just "")
-  Just s -> OptionalTextValue
-    <$> "disclose" .: DF.bool (Just True)
-    <*> "declaration" .: DF.string (Just s)
+innerOptionalTextForm def = 
+  let (discloseDef, stringDef) =
+        case def of
+          Nothing -> (Nothing, Nothing)
+          Just "" -> (Just False, Nothing)
+          Just s -> (Just True, Just s)
+      in OptionalTextValue
+           <$> "disclose" .: DF.bool Nothing
+           <*> "declaration" .: DF.string Nothing
 
 optionalTextForm :: Monad m => Maybe String -> DF.Form B.Html m OptionalTextValue
 optionalTextForm def =
