@@ -73,6 +73,7 @@ import DigestiveServant
 import Invitation
 import InvitationEmail
 import Lib
+import OptionalTextForm
 import PDF
 import Registration
 
@@ -260,7 +261,7 @@ regformHtml auth view editable = do
               B.hr
               B.p "Medical information"
               textInputLineParagraph editable "tetanus_date" view "Date of last tetanus"
-              textInputAreaParagraph editable "diseases" view "Details of any infections/diseases"
+              optionalTextInputAreaParagraph editable (DF.subView "diseases" view) "Details of any infections/diseases"
               textInputAreaParagraph editable "allergies" view "Details of any allergies"
               textInputAreaParagraph editable "medication_diet" view "Details of any medication or medical diets"
               textInputAreaParagraph editable "dietary_reqs" view "Details of any dietary requirements"
@@ -452,7 +453,7 @@ registrationDigestiveForm init = Registration
   <*> "vegetarian" .: DF.bool (Just $ vegetarian init)
 
   <*> "tetanus_date" .: DF.string (Just $ tetanus_date init)
-  <*> "diseases" .: DF.string (Just $ diseases init)
+  <*> "diseases" .: optionalTextMaybeForm (Just $ diseases init)
   <*> "allergies" .: DF.string (Just $ allergies init)
   <*> "medication_diet" .: DF.string (Just $ medication_diet init)
   <*> "dietary_reqs" .: DF.string (Just $ dietary_reqs init)

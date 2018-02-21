@@ -25,8 +25,12 @@ dependencies:
 library:
   source-dirs: src
   dependencies:
+  - blaze-html
+  - digestive-functors
+  - digestive-functors-blaze
   - network
   - postgresql-simple
+  - text
   - yaml
 
 
