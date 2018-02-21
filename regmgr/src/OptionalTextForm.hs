@@ -50,7 +50,7 @@ optionalTextMaybeForm def = f <$> optionalTextForm def
   where f (OptionalTextValue False _) = ""
         f (OptionalTextValue True s) = s
 
-optionalTextInputAreaParagraph editable view description = 
+optionalTextInputAreaParagraph editable fieldname parentView description = 
   if editable
     then do B.p $ do
                 DB.label "disclose" view description
@@ -70,4 +70,4 @@ optionalTextInputAreaParagraph editable view description =
                 if b
                   then B.p $ DB.inputTextArea (Just 8) (Just 80) "declaration" view
                   else B.p "Nothing disclosed"
-
+  where view = DF.subView fieldname parentView

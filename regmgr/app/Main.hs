@@ -261,11 +261,11 @@ regformHtml auth view editable = do
               B.hr
               B.p "Medical information"
               textInputLineParagraph editable "tetanus_date" view "Date of last tetanus"
-              optionalTextInputAreaParagraph editable (DF.subView "diseases" view) "Details of any infections/diseases"
-              textInputAreaParagraph editable "allergies" view "Details of any allergies"
-              textInputAreaParagraph editable "medication_diet" view "Details of any medication or medical diets"
-              textInputAreaParagraph editable "dietary_reqs" view "Details of any dietary requirements"
-              textInputAreaParagraph editable "faith_needs" view "Details of any faith/cultural needs (eg dress, diet, holy days, toilet arrangements)"
+              optionalTextInputAreaParagraph editable "diseases" view "Details of any infections/diseases"
+              optionalTextInputAreaParagraph editable "allergies" view "Details of any allergies"
+              optionalTextInputAreaParagraph editable "medication_diet" view "Details of any medication or medical diets"
+              optionalTextInputAreaParagraph editable "dietary_reqs" view "Details of any dietary requirements"
+              optionalTextInputAreaParagraph editable "faith_needs" view "Details of any faith/cultural needs (eg dress, diet, holy days, toilet arrangements)"
              
 
               when editable $ DB.inputSubmit "Register for event"
@@ -454,10 +454,10 @@ registrationDigestiveForm init = Registration
 
   <*> "tetanus_date" .: DF.string (Just $ tetanus_date init)
   <*> "diseases" .: optionalTextMaybeForm (Just $ diseases init)
-  <*> "allergies" .: DF.string (Just $ allergies init)
-  <*> "medication_diet" .: DF.string (Just $ medication_diet init)
-  <*> "dietary_reqs" .: DF.string (Just $ dietary_reqs init)
-  <*> "faith_needs" .: DF.string (Just $ faith_needs init)
+  <*> "allergies" .: optionalTextMaybeForm (Just $ allergies init)
+  <*> "medication_diet" .: optionalTextMaybeForm (Just $ medication_diet init)
+  <*> "dietary_reqs" .: optionalTextMaybeForm (Just $ dietary_reqs init)
+  <*> "faith_needs" .: optionalTextMaybeForm (Just $ faith_needs init)
 
 
 
