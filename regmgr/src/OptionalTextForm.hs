@@ -34,8 +34,8 @@ innerOptionalTextForm def =
           Just "" -> (Just False, Nothing)
           Just s -> (Just True, Just s)
       in OptionalTextValue
-           <$> "disclose" .: DF.bool Nothing
-           <*> "declaration" .: DF.string Nothing
+           <$> "disclose" .: DF.choice [(True, "yes"), (False, "no")] discloseDef
+           <*> "declaration" .: DF.string stringDef
 
 optionalTextForm :: Monad m => Maybe String -> DF.Form B.Html m OptionalTextValue
 optionalTextForm def =
@@ -56,7 +56,7 @@ optionalTextInputAreaParagraph editable fieldname parentView description =
             B.p $ do
                 "Do you wish to disclose information here?"
                 ": "
-                DB.inputCheckbox "disclose" view
+                DB.inputRadio False "disclose" view
                 DB.errorList "disclose" view
             B.p $ do
                 DB.inputTextArea (Just 8) (Just 80) "declaration" view
@@ -65,8 +65,6 @@ optionalTextInputAreaParagraph editable fieldname parentView description =
                 DB.label "declaration" view description
                 ": "
                 DB.errorList "declaration" view
-                let b = DF.fieldInputBool "disclose" view
-                if b
-                  then B.p $ DB.inputTextArea (Just 8) (Just 80) "declaration" view
-                  else B.p "Nothing disclosed"
+                B.p $ DB.inputTextArea (Just 8) (Just 80) "declaration" view
   where view = DF.subView fieldname parentView
+
