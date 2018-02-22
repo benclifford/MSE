@@ -7,7 +7,8 @@ import qualified Data.Yaml as Y
 import qualified Network.Socket as N
 
 data Config = Config {
-    smtpServer :: String
+    urlbase :: String
+  , smtpServer :: String
   , smtpPort :: N.PortNumber
   , smtpUser :: String
   , smtpPassword :: String

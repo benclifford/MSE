@@ -1,3 +1,4 @@
+urlbase: "http://localhost:8080/"
 smtpServer: "smtp.example.com"
 smtpPort: "587"
 smtpUser: "you"

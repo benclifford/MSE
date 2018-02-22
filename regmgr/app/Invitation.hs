@@ -34,6 +34,7 @@ import Servant
 import DB
 import DigestiveBits
 import DigestiveServant
+import InvitationEmail
 import Lib (User)
 
 
@@ -90,13 +91,15 @@ handleInvitePost reqBody user = do
     (_, Just value) -> do
       liftIO $ putStrLn "Invitation validated in digestive functor"
       auth <- liftIO $ invite value
+      sendInviteEmail auth
       return $ do
         B.h1 "Invitation submitted"
         B.p $ "An invitation was generated for " <> (B.toHtml $ inv_firstname value) <> " " <> (B.toHtml $ inv_lastname value)
+        B.p $ "A personalised invitation link has been included in the email."
         B.p $ do
-          "Please ask the participant to complete the form "
+          "For debugging purposes, the link is also here:"
           (B.a ! BA.href ("/register/" <> fromString auth))
-            "the form at this URL"
+            "link"
 
     (view, Nothing) -> do
       liftIO $ putStrLn "Invitation POST did not validate in digestive functor"
