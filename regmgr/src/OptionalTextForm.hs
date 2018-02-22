@@ -65,6 +65,6 @@ optionalTextInputAreaParagraph editable fieldname parentView description =
                 DB.label "declaration" view description
                 ": "
                 DB.errorList "declaration" view
-                B.p $ DB.inputTextArea (Just 8) (Just 80) "declaration" view
+                B.p $ B.toHtml $ DF.fieldInputText "declaration" view
   where view = DF.subView fieldname parentView
 
