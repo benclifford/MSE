@@ -291,7 +291,7 @@ textInputLineParagraph editable fieldName view description =
                 DB.label fieldName view description
                 ": "
                 DB.errorList fieldName view
-                DB.inputText fieldName view
+                (DB.inputText fieldName view) ! BA.size "80"
     else B.p $ do
                 DB.label fieldName view description
                 ": "
