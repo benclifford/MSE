@@ -106,10 +106,7 @@ getExtraDataPhone :: PG.Connection -> Integer -> String -> IO String
 getExtraDataPhone conn scoutid group = do
   p1 <- getExtraDataField conn scoutid group "phone1"
   p2 <- getExtraDataField conn scoutid group "phone2"
-  let telephone =
-        if | p1 /= "" && p2 == "" -> p1
-           | p1 == "" && p2 /= "" -> p2
-           | p1 /= "" && p2 /= "" -> p1 ++ " / " ++ p2
+  let telephone = commaSeparatedConcat [p1, p2]
   return telephone
 
 getExtraDataFullname :: PG.Connection -> Integer -> String -> IO String
