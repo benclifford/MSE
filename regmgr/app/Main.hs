@@ -32,7 +32,7 @@ module Main where
 -- Generally operators will need to be explicitly imported so that
 -- they can be nicely used as operators without a package name.
 
-import Control.Monad (when)
+import Control.Monad (when, mapM_)
 
 import Control.Monad.IO.Class (liftIO)
 
@@ -99,10 +99,11 @@ type InviteGetAPI = "admin" :> "invite" :> AdminAuth :> Get '[HTML] B.Html
 type InvitePostAPI = "admin" :> "invite" :> ReqBody '[FormUrlEncoded] [(String, String)] :> AdminAuth :> Post '[HTML] B.Html
 
 type MailTestAPI = "admin" :> "mailtest" :> AdminAuth :> Get '[HTML] B.Html
+type SendInviteEmailAPI = "admin" :> "sendInviteEmail" :> Capture "uuid" String :> AdminAuth :> Get '[HTML] B.Html
 
 type CSVAPI = "admin" :> "csv" :> AdminAuth :> Get '[SC.CSV] (Headers '[Header "Content-Disposition" String] [Registration])
 
-type AdminStaticAPI = "admin" :> AdminAuth :> Get '[HTML] B.Html
+type AdminTopAPI = "admin" :> AdminAuth :> Get '[HTML] B.Html
 
 
 -- QUESTION/DISCUSSION: note how when updating this API type, eg to
@@ -117,8 +118,9 @@ type API = PingAPI :<|> InboundAuthenticatorAPI
       :<|> InviteGetAPI
       :<|> InvitePostAPI
       :<|> CSVAPI
-      :<|> AdminStaticAPI
+      :<|> AdminTopAPI
       :<|> MailTestAPI
+      :<|> SendInviteEmailAPI
 
 server1 :: Server API
 server1 = handlePing :<|> handleRegistrationGet :<|> handleHTMLPing
@@ -128,8 +130,9 @@ server1 = handlePing :<|> handleRegistrationGet :<|> handleHTMLPing
   :<|> handleInviteGet
   :<|> handleInvitePost
   :<|> handleCSV
-  :<|> handleAdminStatic
+  :<|> handleAdminTop
   :<|> handleMailTest
+  :<|> handleSendInviteEmail
 
 handlePing :: Handler String
 handlePing = return "PONG"
@@ -498,17 +501,58 @@ instance CSV.ToField Bool
 
 
 
-handleAdminStatic :: User -> Handler B.Html
-handleAdminStatic _user = return $ do
-  B.p "Admin page"
-  B.p $ (B.a ! BA.href "/admin/invite")
-      "Invite new participant"
-  B.p $ (B.a ! BA.href "/admin/csv")
-      "Download CSV of all forms, completed and not-completed"
-  
+handleAdminTop :: User -> Handler B.Html
+handleAdminTop _user = do
 
+  c <- liftIO $ readConfig
+
+  let ub = (fromString . urlbase) c
+
+  let 
+    registrantRow :: Registration -> B.Html
+    registrantRow r = do
+      let auth = (fromString . authenticator) r
+      B.p $ do
+        (B.toHtml . lastname) r
+        ", "
+        (B.toHtml . firstname) r
+        ". "
+        "  State: "
+        (B.toHtml . state) r
+        " "
+        (B.a ! BA.href (ub <> "/admin/sendInviteEmail/" <> auth))
+            ("[Send invitation email to " <> (fromString . invite_email) r <> "]")
+        " "
+        (B.a ! BA.href (ub <> "/pdf/" <> auth))
+
+            "[View permission form PDF]"
+
+  registrants <- selectAll
+
+  return $ do
+    B.h1 "Admin page"
+    B.p $ (B.a ! BA.href "/admin/invite")
+        "Invite new participant"
+    B.p $ (B.a ! BA.href "/admin/csv")
+        "Download CSV of all forms, completed and not-completed"
+    B.hr
+    B.h2 "Participants in DB"
+    mapM_ registrantRow registrants :: B.Html
 
 handleMailTest :: User -> Handler B.Html
 handleMailTest _user = do
   liftIO $ sendTop
   return $ B.p "mail test response"
+
+handleSendInviteEmail :: String -> User -> Handler B.Html
+handleSendInviteEmail auth _user = do
+  sendInviteEmail auth
+  return $ do
+    B.h1 "Invitation submitted"
+    B.p $ "An invitation was generated."
+    B.p $ "A personalised invitation link has been included in the email."
+    B.p $ do
+      "For debugging purposes, the link is also here:"
+      (B.a ! BA.href ("/register/" <> fromString auth))
+        "link"
+

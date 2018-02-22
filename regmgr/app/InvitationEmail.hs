@@ -79,7 +79,7 @@ sendInviteEmail auth = liftIO $ do
        <> "Please complete this registration form online and then print, sign and return it to your scout leader.\n"
        <> url
  
-  let htmltext = htmlPart $ "<p>Please complete this registration form onlne, and then print, sign and return it to your scout leader. "
+  let htmltext = htmlPart $ "<p>Please complete this registration form online, and then print, sign and return it to your scout leader. "
                          <> "<a href=\"" <> url <> "\">Click here for registration form</a>.</p>"
 
   let mail = Mail {
