@@ -6,6 +6,8 @@ module Main where
 
 import Data.List (intersperse)
 
+import Data.Maybe (maybeToList)
+import Data.Monoid ( (<>) )
 import qualified Data.Text as T
 import Data.Traversable (for)
 import Data.UUID as UUID
@@ -73,11 +75,14 @@ addReg conn scoutid = do
       doctor_address <- getExtraDataAddress conn scoutid "doctor"
       doctor_telephone <- getExtraDataPhone conn scoutid "doctor"
 
-      PG.execute conn "INSERT INTO regmgr_attendee (authenticator, state, modified, osm_scoutid, firstname, lastname, dob, registrant_address, registrant_telephone, ec_1_name, ec_1_address, ec_1_telephone, doctor_name, doctor_address, doctor_telephone) VALUES (?,?,?,?,?,?,?,?,?,?,?,?, ?,?,?)"
+      invite_email <- getExtraDataFirstContactEmail conn scoutid
+
+      PG.execute conn "INSERT INTO regmgr_attendee (authenticator, state, modified, osm_scoutid, firstname, lastname, dob, registrant_address, registrant_telephone, ec_1_name, ec_1_address, ec_1_telephone, doctor_name, doctor_address, doctor_telephone, invite_email) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
         ( (auth, "M" :: String, newDBTime, scoutid, fn, ln, dob)
        :. (registrant_address, registrant_telephone)
        :. (ec_1_name, ec_1_address, ec_1_telephone)
        :. (doctor_name, doctor_address, doctor_telephone)
+       :. [invite_email]
         )
 
       putStrLn "Inserted"
@@ -115,6 +120,28 @@ getExtraDataFullname conn scoutid group = do
   ln <- getExtraDataField conn scoutid group "lastname"
   return $ fn ++ " " ++ ln
 
+getExtraDataFirstContactEmail :: PG.Connection -> Integer -> IO String
+getExtraDataFirstContactEmail conn scoutid = do
+  e1 <- getExtraDataEmail conn scoutid "contact_primary_1" "email1"
+  e2 <- getExtraDataEmail conn scoutid "contact_primary_2" "email1"
+  e3 <- getExtraDataEmail conn scoutid "contact_primary_1" "email2"
+  e4 <- getExtraDataEmail conn scoutid "contact_primary_2" "email2"
+  let es :: [String] = concat (maybeToList <$> [e1,e2,e3,e4])
+  case es :: [String] of
+    [] -> return ""
+    (e:_) -> return (e :: String)
+
+getExtraDataEmail :: PG.Connection -> Integer -> String -> String -> IO (Maybe String)
+getExtraDataEmail conn scoutid group stub = do
+  e <- getExtraDataField conn scoutid group stub
+  ps <- getExtraDataField conn scoutid group (stub <> "_leaders")
+  let p = if ps == "no" then False else True
+  if p && e /= ""
+    then return (Just e)
+    else return Nothing
+
+
 commaSeparatedConcat :: [String] -> String
 commaSeparatedConcat l = concat $ intersperse ", " $ (filter (/= "")) $ map trim l
   where trim s = T.unpack $ T.strip $ T.pack s
+
