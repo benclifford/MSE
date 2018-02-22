@@ -41,18 +41,20 @@ import Lib (User)
 -- TODO: use haskell modules to get rid of inv_ prefix
 data Invitation = Invitation {
     inv_firstname :: String,
-    inv_lastname :: String
+    inv_lastname :: String,
+    inv_email :: String
   }
 
 invitationDigestiveForm :: Monad m => DF.Form B.Html m Invitation
 invitationDigestiveForm = Invitation
   <$> "firstname" .: nonEmptyString Nothing
   <*> "lastname" .: nonEmptyString Nothing
+  <*> "email" .: nonEmptyString Nothing
 
 invitationHtml :: DF.View B.Html -> B.Html
 invitationHtml view = do
   B.h1 "Invite new participant manually"
-  B.p "Enter basic details of a new participant here and a registration link will be generated for them to complete"
+  B.p "Enter basic details of a new participant here and an invitation will be emailed to them. Don't use this form to invite people who are already in the system."
   B.form
     ! BA.action "/admin/invite"
     ! BA.method "post"
@@ -67,7 +69,12 @@ invitationHtml view = do
         ": "
         DB.errorList "lastname" view
         DB.inputText "lastname" view
-      DB.inputSubmit "Invite participant" 
+      B.p $ do
+        DB.label "email" view "Email"
+        ": "
+        DB.errorList "email" view
+        DB.inputText "email" view
+      DB.inputSubmit "Invite new participant" 
 
 
 handleInviteGet :: User -> Handler B.Html
@@ -104,8 +111,8 @@ invite inv = do
   withDB $ \conn -> do
     newDBTime <- dbNow conn
 
-    execute conn "INSERT INTO regmgr_attendee (authenticator, state, modified, firstname, lastname) VALUES (?,?,?,?,?)"
-      (auth, "N" :: String, newDBTime, inv_firstname inv, inv_lastname inv)
+    execute conn "INSERT INTO regmgr_attendee (authenticator, state, modified, firstname, lastname, invite_email) VALUES (?,?,?,?,?,?)"
+      (auth, "N" :: String, newDBTime, inv_firstname inv, inv_lastname inv, inv_email inv)
 
   return auth
 
