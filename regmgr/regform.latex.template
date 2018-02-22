@@ -15,7 +15,7 @@
 
 \pagestyle{plain}
 
-\makeoddfoot{plain}{}{<@ authenticator@> / <@ modified @> / page \thepage{} of \thelastpage{} / <@ invite_email @> / <@ firstname @> <@ lastname @>}{}
+\makeoddfoot{plain}{}{\tiny <@ authenticator@> / <@ modified @> / page \thepage{} of \thelastpage{} / <@ invite_email @> / <@ firstname @> <@ lastname @>}{}
 
 \begin{document}
 
@@ -149,18 +149,16 @@ give permission for the young person named above to attend a camp
 organised by 1st Merrow and supervised by the Scout leaders. I understand
 that the Scout Leader or Organiser of the event reserves the right to 
 send participants home if necessary. I understand and agree that
-photographs/TODO and digital images of my \offspring taken at the
+photographs and digital images of my \offspring taken at the
 event may be used for Scout Association publicity.
 
-
-
-Name of signer: \field{<@ firstname @> <@ lastname @> TODO}
+Date: \fbox{\phantom{01 JANUARY 2018}}
 \hfill
-Date: \field{TODO}
-\hfill
-Relationship to participant: \field{TODO}
+Relationship to participant: \fbox{\phantom{PARENT LONGER RELATIONSHIP}}
 
-\hrulefill XXXXXX Signature here XXXXX NOT STORED IN DATABASE XXXX \hrulefill
+Name of signer: \fbox{\phantom{JOHN SMITH ESQ LONGER}}
+\hfill
+Signature: \fbox{\phantom{This is how big an answer would be. SIGNATURE}}
 
 \hrulefill
  
