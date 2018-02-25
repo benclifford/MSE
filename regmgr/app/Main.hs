@@ -224,9 +224,9 @@ regformHtml auth view editable = do
                    ! BA.method "post"
              $ do
 
-              -- QUESTION/DISCUSSION: the authenticator lets us find the relevant record (it's a combo of identifier and authenticator...) and the modified value lets us do OCC transaction handling.
-              DB.inputHidden "authenticator" view
+              -- it is useful to include modified in the form submission so as to catch OCC bugs (unlike authenticator and state which should be constant and never modified using this form)
               DB.inputHidden "modified" view
+              DB.errorList "modified" view
 
               textInputLineParagraph editable "firstname" view "First name"
               textInputLineParagraph editable "lastname" view "Family name"
@@ -421,9 +421,15 @@ main = do
 -- | This is the registration form as a Digestive Functor form
 registrationDigestiveForm :: Monad m => Registration -> DF.Form B.Html m Registration
 registrationDigestiveForm init = Registration
-  <$> "authenticator" .: DF.string (Just $ authenticator init) -- TODO: a validator on this should check that the form value matches up with the value in init - which will, for example, have been read from the db
-  <*> "state" .: DF.string (Just $ state init) -- TODO: a validator on this should check that the form value matches up with the value in init, which will for example, have come from the DB. Or is perhaps also nullable to allow creation of entries. Or perhaps to check we are doing the right kind of state progression so that record can't be moved into wrong state by rogue HTTP request?
-  <*> "modified" .: (read <$> (DF.string (Just $ show $ modified init)))
+
+  <$> "authenticator" .: constString (authenticator init)
+
+  <*> "state" .: constString (state init)
+
+  <*> "modified" .: (read <$> (constString (show $ modified init)))
+
+-- we have an opportunity here to discover the the modified token has changed, before we attempt to hit the database. Although the final check will happen at the database, we can get it here as a form validation error first, which might present better scope for handling it. eg still displaying editable form contents. or allowing a force override option to appear in the user interface (which could swap the old modified for the new modified in the UI, for example).
+
   <*> "invite_email" .: DF.string (Just $ invite_email init)
 
   -- security bug here maybe: if I fake a form response, I can send in a new osm_scoutid, and make my record be attached to a different OSM record. Which at present would impede the real owner of that record being invited if they had not already been invited.
@@ -461,7 +467,6 @@ registrationDigestiveForm init = Registration
   <*> "medication_diet" .: optionalTextMaybeForm (Just $ medication_diet init)
   <*> "dietary_reqs" .: optionalTextMaybeForm (Just $ dietary_reqs init)
   <*> "faith_needs" .: optionalTextMaybeForm (Just $ faith_needs init)
-
 
 
 entryEditable :: Registration -> Bool
