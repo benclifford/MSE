@@ -423,7 +423,7 @@ registrationDigestiveForm :: Monad m => Registration -> DF.Form B.Html m Registr
 registrationDigestiveForm init = Registration
   <$> "authenticator" .: DF.string (Just $ authenticator init) -- TODO: a validator on this should check that the form value matches up with the value in init - which will, for example, have been read from the db
   <*> "state" .: DF.string (Just $ state init) -- TODO: a validator on this should check that the form value matches up with the value in init, which will for example, have come from the DB. Or is perhaps also nullable to allow creation of entries. Or perhaps to check we are doing the right kind of state progression so that record can't be moved into wrong state by rogue HTTP request?
-  <*> "modified" .: (read <$> (DF.string (Just $ show $ modified init))) -- BUG: ignores modified time from client! which means OCC is broken as we always default to the latest version and so mostly don't ever hit a conflict. And the problem here is that we need to serialise it out to a form field and then parse it back in later, which is troublesome.
+  <*> "modified" .: (read <$> (DF.string (Just $ show $ modified init)))
   <*> "invite_email" .: DF.string (Just $ invite_email init)
 
   -- security bug here maybe: if I fake a form response, I can send in a new osm_scoutid, and make my record be attached to a different OSM record. Which at present would impede the real owner of that record being invited if they had not already been invited.
@@ -472,6 +472,7 @@ entryEditable registration = state registration `elem` ["M", "N", "I"]
 handleUnlock :: String -> Handler B.Html
 handleUnlock auth = do
 
+  -- BUG?: this does not update the OCC modifier. It probably doesn't break things too much / at all, but it's a bit lame that this field is not being handled by the OCC code. There shouldn't be a conflict with OCC here ever, though, because we're always forcing the code to a specific value.
   withDB $ \conn -> execute conn "UPDATE regmgr_attendee SET state = ? WHERE authenticator = ?" ("N" :: String, auth)
 
   handleRegistrationGet auth
