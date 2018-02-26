@@ -47,56 +47,6 @@ handlePDFForm auth = do
   let tempLatexFilename = auth ++ ".latex"
   let tempPDFFilename = auth ++ ".pdf"
 
-{-
-  liftIO $ callCommand $ "cp regform.latex.template " ++ tempLatexFilename
-
-  -- TODO: now some sed in-place commands or something like that?
-  -- be aware that there are likely to be text fields with interesting
-  -- content (such as medical descriptions) that won't naturally fit
-  -- into a short 80-col commandline, and will have symbols that screw
-  -- stuff up for substitution commands
-
-  let sed name accessor = liftIO $ callCommand $ "sed -i 's~[+{]" ++ name ++ "[+}]~" ++ accessor val ++ "~' " ++ tempLatexFilename 
-
-  sed "authenticator" authenticator
-  sed "modified" (show . modified)
-  sed "invite_email" invite_email
-
-  sed "firstname" firstname
-  sed "lastname" lastname
-  sed "dob" dob
-
-  sed "registrant-address" registrant_address
-  sed "registrant-telephone" registrant_telephone
-
-  sed "ec-1-name" ec_1_name
-  sed "ec-1-relationship" ec_1_relationship
-  sed "ec-1-address" ec_1_address
-  sed "ec-1-telephone" ec_1_telephone
-  sed "ec-1-mobile" ec_1_mobile
-
-  sed "ec-2-name" ec_2_name
-  sed "ec-2-relationship" ec_2_relationship
-  sed "ec-2-address" ec_2_address
-  sed "ec-2-telephone" ec_2_telephone
-  sed "ec-2-mobile" ec_2_mobile
-
-  sed "doctor-name" doctor_name
-  sed "doctor-address" doctor_address
-  sed "doctor-telephone" doctor_telephone
-
-  -- TODO: this probably needs formatting as Yes/No rather than true/false
-  sed "swim" (show . swim)
-  sed "vegetarian" (show . vegetarian)
-
-  sed "tetanus-date" tetanus_date
-  sed "diseases" diseases
-  sed "allergies" allergies
-  sed "medication-diet" medication_diet
-  sed "dietary-reqs" dietary_reqs
-  sed "faith-needs" faith_needs
--}
-
   te <- liftIO $ E.parseFileWith E.alternateSyntax "regform.latex.template"
   let template = either (\msg -> error $ "reading template: " ++ msg) (id) (E.eitherResult te)
 
