@@ -62,6 +62,8 @@ addReg conn scoutid = do
 
       newDBTime <- dbNow conn
 
+      section <- getSection conn scoutid
+
       registrant_address <- getExtraDataAddress conn scoutid "contact_primary_member"
       registrant_telephone <- getExtraDataPhone conn scoutid "contact_primary_member"
 
@@ -77,18 +79,25 @@ addReg conn scoutid = do
 
       invite_email <- getExtraDataFirstContactEmail conn scoutid
 
-      PG.execute conn "INSERT INTO regmgr_attendee (authenticator, state, modified, osm_scoutid, firstname, lastname, dob, registrant_address, registrant_telephone, ec_1_name, ec_1_address, ec_1_telephone, doctor_name, doctor_address, doctor_telephone, invite_email) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
+      PG.execute conn "INSERT INTO regmgr_attendee (authenticator, state, modified, osm_scoutid, firstname, lastname, dob, registrant_address, registrant_telephone, ec_1_name, ec_1_address, ec_1_telephone, doctor_name, doctor_address, doctor_telephone, invite_email, section) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
         ( (auth, "M" :: String, newDBTime, scoutid, fn, ln, dob)
        :. (registrant_address, registrant_telephone)
        :. (ec_1_name, ec_1_address, ec_1_telephone)
        :. (doctor_name, doctor_address, doctor_telephone)
-       :. [invite_email]
+       :. (invite_email, section)
         )
 
       putStrLn "Inserted"
 
 
     wrong -> error $ "Bad data from addReq query: " ++ show wrong
+
+getSection :: PG.Connection -> Integer -> IO String
+getSection conn scoutid = do
+  secs <- PG.query conn "SELECT DISTINCT osm_sections.sectionname FROM osm_individual_section LEFT JOIN osm_sections ON osm_individual_section.sectionid = osm_sections.sectionid WHERE scoutid=? ORDER BY osm_sections.sectionname" [scoutid]
+  -- A participant might be in several sections.
+  -- Return them all...
+  return $ commaSeparatedConcat $ (map head) secs
 
 getExtraDataField :: PG.Connection -> Integer -> String -> String -> IO String
 getExtraDataField conn scoutid group field = do

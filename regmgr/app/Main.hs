@@ -438,6 +438,7 @@ registrationDigestiveForm init = Registration
   <*> "firstname" .: DF.string (Just $ firstname init)
   <*> "lastname" .: DF.string (Just $ lastname init)
   <*> "dob" .: nonEmptyString (Just $ dob init)
+  <*> "section" .: DF.string (Just $ section init)
   <*> "registrant_address" .: DF.string (Just $ registrant_address init)
   <*> "registrant_telephone" .: DF.string (Just $ registrant_telephone init)
 

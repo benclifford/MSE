@@ -22,7 +22,7 @@
 
 \textbf{\huge <@ lastname @>, <@ firstname @>}
 \hfill
-\textbf{\huge SCOUT/TODO CODES/TODO}
+\textbf{\huge <@ section @> CODES/TODO}
 
 \textbf{1st Merrow Scout Camp, Some campsite, May 2018}
 \hfill
@@ -44,7 +44,7 @@ Address: \field{<@ registrant_address @>}
 
 Telephone: \field{<@ registrant_telephone @>}
 \hfill
-Section: \field{Scouts/TODO}
+Section: \field{<@ section @>}
 
 \hrulefill
 
