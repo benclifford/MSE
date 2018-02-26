@@ -10,6 +10,7 @@ module PDF where
 
 import Control.Monad.IO.Class (liftIO)
 import qualified Data.ByteString.Lazy as BS 
+import Data.Monoid ( (<>) )
 import qualified Data.Text.Lazy.IO as TIO
 import Database.PostgreSQL.Simple as PG
 import Database.PostgreSQL.Simple.SOP as PGS
@@ -50,7 +51,8 @@ handlePDFForm auth = do
   te <- liftIO $ E.parseFileWith E.alternateSyntax "regform.latex.template"
   let template = either (\msg -> error $ "reading template: " ++ msg) (id) (E.eitherResult te)
 
-  let object = gvals val
+  let extrafields = E.fromPairs [("codes", "X TODO CODECODE Y")]
+  let object = gvals val <> extrafields
 
   liftIO $ putStrLn $ "template object = " ++ show object
 
