@@ -50,7 +50,6 @@ handlePDFForm auth = do
   te <- liftIO $ E.parseFileWith E.alternateSyntax "regform.latex.template"
   let template = either (\msg -> error $ "reading template: " ++ msg) (id) (E.eitherResult te)
 
-  -- let object = E.fromPairs [ "authenticator" .= authenticator val ]
   let object = gvals val
 
   liftIO $ putStrLn $ "template object = " ++ show object
