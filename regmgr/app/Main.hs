@@ -241,7 +241,7 @@ regformHtml auth view editable = do
               textInputLineParagraph editable "ec_1_relationship" view "Relationship"
               textInputLineParagraph editable "ec_1_address" view "Address"
               textInputLineParagraph editable "ec_1_telephone" view "Telephone"
-              textInputLineParagraph editable "ec_1_mobile" view "Mobile telephone"
+              textInputLineParagraph editable "ec_1_telephone2" view "Alternative telephone"
 
               B.hr
               B.p "Emergency Contact 2"
@@ -249,7 +249,7 @@ regformHtml auth view editable = do
               textInputLineParagraph editable "ec_2_relationship" view "Relationship"
               textInputLineParagraph editable "ec_2_address" view "Address"
               textInputLineParagraph editable "ec_2_telephone" view "Telephone"
-              textInputLineParagraph editable "ec_2_mobile" view "Mobile telephone"
+              textInputLineParagraph editable "ec_2_telephone2" view "Alternative telephone"
 
               B.hr
               B.p "Doctor / GP"
@@ -441,18 +441,19 @@ registrationDigestiveForm init = Registration
   <*> "section" .: DF.string (Just $ section init)
   <*> "registrant_address" .: DF.string (Just $ registrant_address init)
   <*> "registrant_telephone" .: DF.string (Just $ registrant_telephone init)
+  <*> "registrant_telephone2" .: DF.string (Just $ registrant_telephone2 init)
 
   <*> "ec_1_name" .: DF.string (Just $ ec_1_name init)
   <*> "ec_1_relationship" .: DF.string (Just $ ec_1_relationship init)
   <*> "ec_1_address" .: DF.string (Just $ ec_1_address init)
   <*> "ec_1_telephone" .: DF.string (Just $ ec_1_telephone init)
-  <*> "ec_1_mobile" .: DF.string (Just $ ec_1_mobile init)
+  <*> "ec_1_telephone2" .: DF.string (Just $ ec_1_telephone2 init)
 
   <*> "ec_2_name" .: DF.string (Just $ ec_2_name init)
   <*> "ec_2_relationship" .: DF.string (Just $ ec_2_relationship init)
   <*> "ec_2_address" .: DF.string (Just $ ec_2_address init)
   <*> "ec_2_telephone" .: DF.string (Just $ ec_2_telephone init)
-  <*> "ec_2_mobile" .: DF.string (Just $ ec_2_mobile init)
+  <*> "ec_2_telephone2" .: DF.string (Just $ ec_2_telephone2 init)
 
   <*> "doctor_name" .: DF.string (Just $ doctor_name init)
   <*> "doctor_address" .: DF.string (Just $ doctor_address init)

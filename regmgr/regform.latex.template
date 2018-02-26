@@ -34,6 +34,8 @@ If details are wrong, please change them online and reprint this form. PLEASE DO
 \hrulefill
 
 About the participant
+\hfill
+Section: \field{<@ section @>}
 
 First Name: \field{<@ firstname @>}
 \hfill
@@ -45,7 +47,7 @@ Address: \field{<@ registrant_address @>}
 
 Telephone: \field{<@ registrant_telephone @>}
 \hfill
-Section: \field{<@ section @>}
+Alternative telelphone number: \field{<@ registrant_telephone2 @>}
 
 \hrulefill
 
@@ -59,7 +61,7 @@ Address: \field{<@ ec_1_address @>}
 
 Telephone number: \field{<@ ec_1_telephone @>}
 \hfill
-Mobile telephone number: \field{<@ ec_1_mobile @>}
+Alternative telephone number: \field{<@ ec_1_telephone2 @>}
 
 \hrulefill
 
@@ -73,7 +75,7 @@ Address: \field{<@ ec_2_address @>}
 
 Telephone number: \field{<@ ec_2_telephone @>}
 \hfill
-Mobile telephone number: \field{<@ ec_2_mobile @>}
+Alternative telephone number: \field{<@ ec_2_telephone2 @>}
 
 \hrulefill
 

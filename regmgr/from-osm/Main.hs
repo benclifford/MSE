@@ -65,10 +65,10 @@ addReg conn scoutid = do
       section <- getSection conn scoutid
 
       registrant_address <- getExtraDataAddress conn scoutid "contact_primary_member"
-      registrant_telephone <- getExtraDataPhone conn scoutid "contact_primary_member"
+      (registrant_telephone, registrant_telephone2) <- getExtraDataPhonePair conn scoutid "contact_primary_member"
 
       ec_1_address <- getExtraDataAddress conn scoutid "emergency"
-      ec_1_telephone <- getExtraDataPhone conn scoutid "emergency"
+      (ec_1_telephone, ec1_telephone2) <- getExtraDataPhonePair conn scoutid "emergency"
       ec_1_name <- getExtraDataFullname conn scoutid "emergency"
 
       doctor_fullname <- getExtraDataFullname conn scoutid "doctor"
@@ -79,9 +79,9 @@ addReg conn scoutid = do
 
       invite_email <- getExtraDataFirstContactEmail conn scoutid
 
-      PG.execute conn "INSERT INTO regmgr_attendee (authenticator, state, modified, osm_scoutid, firstname, lastname, dob, registrant_address, registrant_telephone, ec_1_name, ec_1_address, ec_1_telephone, doctor_name, doctor_address, doctor_telephone, invite_email, section) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
+      PG.execute conn "INSERT INTO regmgr_attendee (authenticator, state, modified, osm_scoutid, firstname, lastname, dob, registrant_address, registrant_telephone, registrant_telephone2, ec_1_name, ec_1_address, ec_1_telephone, doctor_name, doctor_address, doctor_telephone, invite_email, section) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
         ( (auth, "M" :: String, newDBTime, scoutid, fn, ln, dob)
-       :. (registrant_address, registrant_telephone)
+       :. (registrant_address, registrant_telephone, registrant_telephone2)
        :. (ec_1_name, ec_1_address, ec_1_telephone)
        :. (doctor_name, doctor_address, doctor_telephone)
        :. (invite_email, section)
@@ -116,12 +116,16 @@ getExtraDataAddress conn scoutid group = do
   ap <- getExtraDataField conn scoutid group "postcode"
   return $ commaSeparatedConcat $ [a1, a2, a3, a4, ap]
 
-getExtraDataPhone :: PG.Connection -> Integer -> String -> IO String
-getExtraDataPhone conn scoutid group = do
+getExtraDataPhonePair :: PG.Connection -> Integer -> String -> IO (String, String)
+getExtraDataPhonePair conn scoutid group = do
   p1 <- getExtraDataField conn scoutid group "phone1"
   p2 <- getExtraDataField conn scoutid group "phone2"
-  let telephone = commaSeparatedConcat [p1, p2]
-  return telephone
+  return (p1, p2)
+
+getExtraDataPhone :: PG.Connection -> Integer -> String -> IO String
+getExtraDataPhone conn scoutid group = do
+  (p1, p2) <- getExtraDataPhonePair conn scoutid group
+  return $ commaSeparatedConcat [p1, p2]
 
 getExtraDataFullname :: PG.Connection -> Integer -> String -> IO String
 getExtraDataFullname conn scoutid group = do
