@@ -105,6 +105,7 @@ type CSVAPI = "admin" :> "csv" :> AdminAuth :> Get '[SC.CSV] (Headers '[Header "
 
 type AdminTopAPI = "admin" :> AdminAuth :> Get '[HTML] B.Html
 
+type FilesAPI = "file" :> Raw
 
 -- QUESTION/DISCUSSION: note how when updating this API type, eg to
 -- add an endpoint or to change an endpoint type, that there will be
@@ -121,6 +122,7 @@ type API = PingAPI :<|> InboundAuthenticatorAPI
       :<|> AdminTopAPI
       :<|> MailTestAPI
       :<|> SendInviteEmailAPI
+      :<|> FilesAPI
 
 server1 :: Server API
 server1 = handlePing :<|> handleRegistrationGet :<|> handleHTMLPing
@@ -133,6 +135,7 @@ server1 = handlePing :<|> handleRegistrationGet :<|> handleHTMLPing
   :<|> handleAdminTop
   :<|> handleMailTest
   :<|> handleSendInviteEmail
+  :<|> handleFiles
 
 handlePing :: Handler String
 handlePing = return "PONG"
@@ -564,3 +567,6 @@ handleSendInviteEmail auth _user = do
       (B.a ! BA.href ("/register/" <> fromString auth))
         "link"
 
+
+handleFiles :: Server Raw
+handleFiles = serveDirectoryWebApp "./files"
