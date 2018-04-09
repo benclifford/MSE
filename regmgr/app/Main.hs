@@ -269,11 +269,15 @@ regformHtml auth view editable = do
               B.p "Medical information"
               textInputLineParagraph editable "tetanus_date" view "Date of last tetanus"
               optionalTextInputAreaParagraph editable "diseases" view "Details of any infections/diseases"
+              B.hr
               optionalTextInputAreaParagraph editable "allergies" view "Details of any allergies"
+              B.hr
               optionalTextInputAreaParagraph editable "medication_diet" view "Details of any medication or medical diets"
+              B.hr
               optionalTextInputAreaParagraph editable "dietary_reqs" view "Details of any dietary requirements"
+              B.hr
               optionalTextInputAreaParagraph editable "faith_needs" view "Details of any faith/cultural needs (eg dress, diet, holy days, toilet arrangements)"
-             
+              B.hr
 
               when editable $ DB.inputSubmit "Register for event"
             B.hr
