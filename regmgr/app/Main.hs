@@ -189,6 +189,7 @@ handleRegistrationGet auth = do
         B.docTypeHtml $ do
           B.head $ do
             B.title title
+            jqueryHead
           B.body $ do
             B.h1 title
             regformHtml auth view editable
@@ -369,6 +370,7 @@ handleRegistrationPost auth reqBody = do
             return $ B.docTypeHtml $ do
               B.head $ do
                 B.title title
+                jqueryHead
               B.body $ do
                 B.h1 title
                 B.p "debug: handleUpdateForm - SQL update did not update any rows, but no errors in digestive-functor form"
@@ -384,6 +386,7 @@ handleRegistrationPost auth reqBody = do
           B.docTypeHtml $ do
             B.head $ do
               B.title title
+              jqueryHead
             B.body $ do
               B.h1 title
               B.p "debug: handleUpdateForm - there are errors"
@@ -570,3 +573,11 @@ handleSendInviteEmail auth _user = do
 
 handleFiles :: Server Raw
 handleFiles = serveDirectoryWebApp "./files"
+
+jqueryHead :: B.Html
+jqueryHead = do
+  (B.script ! BA.src "/file/jquery-3.3.1.min.js") (return ())
+  B.link ! BA.rel "stylesheet"
+         ! BA.href "/file/jquery-ui-1.12.1/jquery-ui.min.css"
+  (B.script ! BA.src "/file/jquery-ui-1.12.1/jquery-ui.min.js") (return ())
+
