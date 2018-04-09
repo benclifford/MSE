@@ -279,12 +279,21 @@ regformHtml auth view editable = do
               optionalTextInputAreaParagraph editable "faith_needs" view "Details of any faith/cultural needs (eg dress, diet, holy days, toilet arrangements)"
               B.hr
 
-              when editable $ submitButton "Register for event"
+              when editable $ submitButton "submit" "save" "Save partially completed form to finish later"
+              " or "
+              when editable $ submitButton "submit" "register" "Submit completed form and register for event"
             B.hr
 
-submitButton :: T.Text -> B.Html
-submitButton description =
-  (B.button ! BA.type_ "submit")
+-- note that this isn't using the name hierarchy created by
+-- digestive functors - because (so far) I'm not using digestive
+-- functors to extact the value... this isn't part of the
+-- form "value"
+submitButton :: B.AttributeValue -> B.AttributeValue -> T.Text -> B.Html
+submitButton name value description =
+  (B.button ! BA.type_ "submit"
+            ! BA.name name
+            ! BA.value value
+  )
     (B.toHtml description)
 
 boolInputParagraph editable fieldName view description = 
@@ -373,6 +382,22 @@ handleRegistrationPost auth reqBody = do
 
   let editable = entryEditable val
 
+
+-- we might change the registrationDigestiveForm here to validate differently depending on which submission option we have chosen? because save validation could be looser than submit validation.
+
+
+  -- submit type is mandatory - we'll fail (without a beautiful error)
+  -- if this isn't the case
+  let (Just submitType) = lookup "submit" reqBody
+
+  liftIO $ putStrLn $ "submit type is: " ++ show submitType
+
+-- how can I tell which submit button was clicked?
+-- looks like i shoudl switch to <button type=submit> which can
+-- separately have a name/value and renderable text.
+-- this name won't be a form field, I think - it's not part
+-- of the data.
+
 -- TODO: end factor
   f <- DF.postForm "Registration" (registrationDigestiveForm val) (servantPathEnv reqBody)
 
@@ -389,9 +414,17 @@ handleRegistrationPost auth reqBody = do
        
           let oldDBTime = modified val 
           putStrLn $ "old SQL database time: " ++ show oldDBTime
-          let val' = val { modified = newDBTime, state = "C" }
 
-          r <- updateByAuthAndModified conn val' auth oldDBTime
+          let val' = val { modified = newDBTime }
+
+          -- Note that the submission types are not type safe - we could
+          -- try to make those a bit safer?
+          let val'' = val' { state = if submitType == "register"
+                                     then "C"
+                                     else "P"
+                           }
+
+          r <- updateByAuthAndModified conn val'' auth oldDBTime
 
           putStrLn $ "SQL UPDATE returned: " ++ (show r)
           return r
@@ -510,7 +543,8 @@ registrationDigestiveForm init = Registration
 
 
 entryEditable :: Registration -> Bool
-entryEditable registration = state registration `elem` ["M", "N", "I"]
+entryEditable registration = state registration `elem` ["M", "N", "I", "P"]
+-- New, new from OS[M], Invited, Partially completed
 
 -- debug code to unlock
 
