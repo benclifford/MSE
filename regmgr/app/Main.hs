@@ -238,7 +238,7 @@ regformHtml auth view editable = do
               textInputLineParagraph editable "registrant_telephone" view "Telephone"
 
               -- QUESTION/DISCUSSION: this could be a date picker on the client side in javascript?
-              textInputLineParagraph editable "dob" view "Date of Birth"
+              dateInputParagraph editable "dob" view "Date of Birth"
               B.hr
               B.p "Emergency Contact 1"
               textInputLineParagraph editable "ec_1_name" view "Name"
@@ -317,6 +317,36 @@ textInputAreaParagraph editable fieldName view description =
                 ": "
                 DB.errorList fieldName view
             B.p $ readonlyInputText fieldName view
+
+dateInputParagraph editable fieldName view description = 
+  if editable
+    then      B.p $ do
+                DB.label fieldName view description
+                ": "
+                DB.errorList fieldName view
+                (DB.inputText fieldName view) ! BA.size "80"
+                let ar = DF.absoluteRef fieldName view
+                "reference: "
+                (B.toHtml $ show ar)
+                B.script $ do
+                  "$(\"#"
+                  B.toHtml (escapeDots ar)
+                  "\").datepicker({dateFormat: \"yy-mm-dd\"});"
+-- Make something like <script>$( "#a.b" ).datepicker();</script>
+
+-- TODO: date formats
+-- TODO: initialise picker if we have a valid value
+
+    else B.p $ do
+                DB.label fieldName view description
+                ": "
+                DB.errorList fieldName view
+                readonlyInputText fieldName view
+
+escapeDots = T.pack . concat . (map f) . T.unpack
+  where
+    f '.' = "\\\\."
+    f x = [x]
 
 
 -- | loosely based on inputText source
