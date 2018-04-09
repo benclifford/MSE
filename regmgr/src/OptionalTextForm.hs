@@ -59,7 +59,7 @@ optionalTextInputAreaParagraph editable fieldname parentView description =
                 DB.inputRadio False "disclose" view
                 DB.errorList "disclose" view
             B.p $ do
-                DB.inputTextArea (Just 8) (Just 80) "declaration" view
+                (DB.inputTextArea (Just 8) (Just 80) "declaration" view) ! BA.placeholder "Please enter information here"
                 DB.errorList "declaration" view
     else do B.p $ do
                 DB.label "declaration" view description
