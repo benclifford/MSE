@@ -326,8 +326,6 @@ dateInputParagraph editable fieldName view description =
                 DB.errorList fieldName view
                 (DB.inputText fieldName view) ! BA.size "80"
                 let ar = DF.absoluteRef fieldName view
-                "reference: "
-                (B.toHtml $ show ar)
                 B.script $ do
                   "$(\"#"
                   B.toHtml (escapeDots ar)
