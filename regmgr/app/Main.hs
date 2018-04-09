@@ -341,11 +341,6 @@ dateInputParagraph editable fieldName view description =
                 DB.errorList fieldName view
                 readonlyInputText fieldName view
 
-escapeDots = T.pack . concat . (map f) . T.unpack
-  where
-    f '.' = "\\\\."
-    f x = [x]
-
 
 -- | loosely based on inputText source
 readonlyInputText :: T.Text -> DF.View v -> B.Html
