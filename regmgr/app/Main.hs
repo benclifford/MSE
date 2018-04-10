@@ -279,8 +279,13 @@ regformHtml auth view editable = do
               optionalTextInputAreaParagraph editable "faith_needs" view "Details of any faith/cultural needs (eg dress, diet, holy days, toilet arrangements)"
               B.hr
 
-              when editable $ DB.inputSubmit "Register for event"
+              when editable $ submitButton "Register for event"
             B.hr
+
+submitButton :: T.Text -> B.Html
+submitButton description =
+  (B.button ! BA.type_ "submit")
+    (B.toHtml description)
 
 boolInputParagraph editable fieldName view description = 
   if editable
