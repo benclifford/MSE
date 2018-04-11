@@ -185,6 +185,8 @@ handleRegistrationGet auth = do
 
   let editable = entryEditable val
 
+  labels <- liftIO $ readLabels
+
   let outputHtml =
         B.docTypeHtml $ do
           B.head $ do
@@ -192,7 +194,7 @@ handleRegistrationGet auth = do
             jqueryHead
           B.body $ do
             B.h1 title
-            regformHtml auth view editable
+            regformHtml auth view editable labels
 
   liftIO $ putStrLn "end of req"
 
@@ -208,8 +210,8 @@ updateByAuthAndModified conn val' auth oldDBTime = gupdateInto conn "regmgr_atte
 
 -- | generates an HTML view of this form, which may be editable
 --   or fixed text.
-regformHtml :: String -> DF.View B.Html -> Bool -> B.Html
-regformHtml auth view editable = do
+regformHtml :: String -> DF.View B.Html -> Bool -> [(String, String)] -> B.Html
+regformHtml auth view editable ls = do
             if editable
               then B.p "Please fill out this registration form. We have put information that we know already into the form, but please check and correct those if that information is wrong."
               else do
@@ -263,26 +265,33 @@ regformHtml auth view editable = do
 
               B.hr
               boolInputParagraph editable "general_activities" view "Is attendee allowed to participate in adventurous activities?"
-              boolInputParagraph editable "swim" view "Can attendee swim?"
+              boolInputParagraph editable "swim" view (getLabel "swim" ls)
               boolInputParagraph editable "vegetarian" view "Is attendee vegetarian?"
               B.hr
               B.p "Medical information"
-              textInputLineParagraph editable "tetanus_date" view "Date of last tetanus"
-              optionalTextInputAreaParagraph editable "diseases" view "Details of any infections/diseases"
+              textInputLineParagraph editable "tetanus_date" view (getLabel "tetanus_date" ls)
+              optionalTextInputAreaParagraph editable "diseases" view (getLabel "diseases" ls)
               B.hr
-              optionalTextInputAreaParagraph editable "allergies" view "Details of any allergies"
+              optionalTextInputAreaParagraph editable "allergies" view (getLabel "allergies" ls)
               B.hr
-              optionalTextInputAreaParagraph editable "medication_diet" view "Details of any medication or medical diets"
+              optionalTextInputAreaParagraph editable "medication_diet" view (getLabel "medication_diet" ls)
               B.hr
-              optionalTextInputAreaParagraph editable "dietary_reqs" view "Details of any dietary requirements"
+              optionalTextInputAreaParagraph editable "dietary_reqs" view (getLabel "dietary_reqs" ls)
               B.hr
-              optionalTextInputAreaParagraph editable "faith_needs" view "Details of any faith/cultural needs (eg dress, diet, holy days, toilet arrangements)"
+              optionalTextInputAreaParagraph editable "faith_needs" view (getLabel "faith_needs" ls)
               B.hr
 
               when editable $ submitButton "submit" "save" "Save partially completed form to finish later"
               " or "
               when editable $ submitButton "submit" "register" "Submit completed form and register for event"
             B.hr
+
+getLabel :: String -> [(String, String)] -> B.Html
+getLabel l ls = let
+  ml = lookup ("label_" ++ l) ls
+  in case ml of
+    Just v -> B.toHtml v
+    Nothing -> error $ "Missing label defintion for key " ++ show l
 
 -- note that this isn't using the name hierarchy created by
 -- digestive functors - because (so far) I'm not using digestive
@@ -447,7 +456,9 @@ handleRegistrationPost auth reqBody = do
     -- which only ever spits out the correct value and otherwise
     -- shortcircuits execution and provides the user with another
     -- chance to edit?
-    (view, Nothing) -> return $
+    (view, Nothing) -> do
+      labels <- liftIO $ readLabels
+      return $
           B.docTypeHtml $ do
             B.head $ do
               B.title title
@@ -455,7 +466,7 @@ handleRegistrationPost auth reqBody = do
             B.body $ do
               B.h1 title
               B.p "debug: handleUpdateForm - there are errors"
-              regformHtml auth view editable
+              regformHtml auth view editable labels
                
   return outputHtml
 

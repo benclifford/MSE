@@ -93,26 +93,21 @@ Activity authorisation
 
 Is attendee allowed to participate in general activities? \field{<@ general_activities @>}
 
-Can attendee swim 50 metres? \field{<@ swim @>}
+<@ label_swim @> \field{<@ swim @>}
 
 \hrulefill
 
 Medical information
 
-Date of last tetanus injection: \field{<@ tetanus_date @>}
+<@ label_tetanus_date @>: \field{<@ tetanus_date @>}
 
 \begin{tabular*}{\textwidth}{@{} p{11cm} | p{6cm} @{}}
 \hline
-Any known infectious diseases with which \pronoun have been in
-contact within the month previous to the signing of this form
-(e.g. Chicken Pox, Diptheria, Measles, Mumps, Rubella, Whooping Cough,
-Diarrhoea, Vomiting):
+<@ label_diseases @>:
 &
 \field{<@ diseases @>}  \\
 \hline
-Any known allerges / sensitivities / disabilities / medical conditions
-and details of any precautions or remedies (e.g. Penicillin,
-food colourings, travel sickness, bed-wetting, period pains, asthma):
+<@ label_allergies @>:
 &
 \field{<@ allergies @>} \\
 \hline
@@ -122,22 +117,21 @@ items should be clearly labelled with \possessive name and exact dosages. The
 Scout Leader should be informed beforehand and handed any
 medication upon arrival. \\
 
-Details of any medicines / diets / treatments currently being
-taken / followed (including inhalers and EpiPens) and dosage details.
-Include any non-prescription preparations, such as cough sweets, herbal
-medicines. Please state whether \pronoun will self medicate, what
-condition is being treated, and the specialist / hospital concerned
-if appropriate: & \field{<@ medication_diet @>} \\
+<@ label_medication_diet @>:
+&
+\field{<@ medication_diet @>} \\
 \hline
 Are \pronoun a vegetarian? & \field{<@ vegetarian @>} \\
 
 
 \hline
 
-Details of dietary requirements eg medical or religious: & 
+
+<@ label_dietary_reqs @>:
+& 
 \field{<@ dietary_reqs @>} \\
 \hline
-Details of faith or cultural needs eg dress, diet, holy days, toilet arrangements: &
+<@ label_faith_needs @>: &
 \field{<@ faith_needs @>}  \\
 \hline
 \end{tabular*}

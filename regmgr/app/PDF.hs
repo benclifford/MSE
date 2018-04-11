@@ -23,6 +23,7 @@ import System.Process (callCommand)
 import qualified Text.EDE as E
 import Text.EDE ( (.=) )
 
+import Config
 import DB
 import Registration
 
@@ -36,6 +37,7 @@ handlePDFForm auth = do
 
   liftIO $ putStrLn $ "got sql result: " ++ show entry
 
+  labels <- liftIO $ readLabels
 
   -- SECURITY BUG: sanitation: auth is passed to external programs
   -- but has been read over the wire. Could contain shell commands
@@ -52,7 +54,10 @@ handlePDFForm auth = do
   let template = either (\msg -> error $ "reading template: " ++ msg) (id) (E.eitherResult te)
 
   let extrafields = E.fromPairs [("codes", "X TODO CODECODE Y")]
-  let object = gvals val <> extrafields
+
+  let labelfields = E.fromPairs labels
+
+  let object = gvals val <> extrafields <> labelfields
 
   liftIO $ putStrLn $ "template object = " ++ show object
 

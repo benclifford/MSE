@@ -2,6 +2,10 @@
 
 module Config where
 
+import qualified Data.HashMap.Lazy as HML
+import qualified Data.Maybe as M
+import Data.String (IsString, fromString)
+import qualified Data.Text as T
 import GHC.Generics as G
 import qualified Data.Yaml as Y
 import qualified Network.Socket as N
@@ -29,3 +33,16 @@ readConfig = do
      Right v -> return v
      Left e -> error $ "Cannot parse config file: " ++ show e
 
+readLabels :: (Y.FromJSON k, Y.FromJSON v, IsString k, IsString v)
+           => IO [(k, v)]
+readLabels = do
+  c <- Y.decodeFileEither "english.yaml"
+  case c of
+    -- this seems unnecessarily complex for the end result
+    Right (Y.Object o) ->
+      return
+        $ map (\(a,b) -> (fromString $ T.unpack a, M.fromJust $ Y.parseMaybe Y.parseJSON b))
+        $ HML.toList o
+      -- o is HashMap Text Value
+    Right v -> error $ "Expected an Aeson Object but got " ++ show v
+    Left e -> error $ "Cannot parse english language literals file: " ++ show e
