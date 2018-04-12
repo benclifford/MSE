@@ -54,8 +54,8 @@ invitationDigestiveForm = Invitation
 
 invitationHtml :: DF.View B.Html -> B.Html
 invitationHtml view = do
-  B.h1 "Invite new participant manually"
-  B.p "Enter basic details of a new participant here and an invitation will be emailed to them. Don't use this form to invite people who are already in the system."
+  B.h1 "Invite new attendee manually"
+  B.p "Enter basic details of a new attendee here and an invitation will be emailed to them. Don't use this form to invite people who are already in the system."
   B.form
     ! BA.action "/admin/invite"
     ! BA.method "post"
@@ -75,7 +75,7 @@ invitationHtml view = do
         ": "
         DB.errorList "email" view
         DB.inputText "email" view
-      DB.inputSubmit "Invite new participant" 
+      DB.inputSubmit "Invite new attendee" 
 
 
 handleInviteGet :: User -> Handler B.Html

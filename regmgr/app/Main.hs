@@ -262,9 +262,9 @@ regformHtml auth view editable = do
               textInputLineParagraph editable "doctor_telephone" view "Telephone"
 
               B.hr
-              boolInputParagraph editable "general_activities" view "Is participant allowed to participate in adventurous activities?"
-              boolInputParagraph editable "swim" view "Can participant swim?"
-              boolInputParagraph editable "vegetarian" view "Is participant vegetarian?"
+              boolInputParagraph editable "general_activities" view "Is attendee allowed to participate in adventurous activities?"
+              boolInputParagraph editable "swim" view "Can attendee swim?"
+              boolInputParagraph editable "vegetarian" view "Is attendee vegetarian?"
               B.hr
               B.p "Medical information"
               textInputLineParagraph editable "tetanus_date" view "Date of last tetanus"
@@ -612,11 +612,11 @@ handleAdminTop _user = do
   return $ do
     B.h1 "Admin page"
     B.p $ (B.a ! BA.href "/admin/invite")
-        "Invite new participant"
+        "Invite new attendee"
     B.p $ (B.a ! BA.href "/admin/csv")
         "Download CSV of all forms, completed and not-completed"
     B.hr
-    B.h2 "Participants in DB"
+    B.h2 "Attendees in DB"
     mapM_ registrantRow registrants :: B.Html
 
 handleMailTest :: User -> Handler B.Html

@@ -33,7 +33,7 @@ If details are wrong, please change them online and reprint this form. PLEASE DO
 
 \hrulefill
 
-About the participant
+About the attendee
 \hfill
 Section: \field{<@ section @>}
 
@@ -91,9 +91,9 @@ Telephone number: \field{<@ doctor_telephone @>}
 
 Activity authorisation
 
-Is participant allowed to participate in general activities? \field{<@ general_activities @>}
+Is attendee allowed to participate in general activities? \field{<@ general_activities @>}
 
-Can participant swim 50 metres? \field{<@ swim @>}
+Can attendee swim 50 metres? \field{<@ swim @>}
 
 \hrulefill
 
@@ -151,13 +151,13 @@ as considered necessary by the medical authorities present. I hereby
 give permission for the young person named above to attend a camp
 organised by 1st Merrow and supervised by the Scout leaders. I understand
 that the Scout Leader or Organiser of the event reserves the right to 
-send participants home if necessary. I understand and agree that
+send attendees home if necessary. I understand and agree that
 photographs and digital images of my \offspring taken at the
 event may be used for Scout Association publicity.
 
 Date: \fbox{\phantom{01 JANUARY 2018}}
 \hfill
-Relationship to participant: \fbox{\phantom{PARENT LONGER RELATIONSHIP}}
+Relationship to attendee: \fbox{\phantom{PARENT LONGER RELATIONSHIP}}
 
 Name of signer: \fbox{\phantom{JOHN SMITH ESQ LONGER}}
 \hfill
