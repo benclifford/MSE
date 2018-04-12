@@ -237,7 +237,7 @@ regformHtml auth view editable = do
               textInputLineParagraph editable "registrant_address" view "Address"
               textInputLineParagraph editable "registrant_telephone" view "Telephone"
 
-              -- QUESTION/DISCUSSION: this could be a date picker on the client side in javascript?
+              -- QUESTION/DISCUSSION: this is a date picker on the client side in javascript
               dateInputParagraph editable "dob" view "Date of Birth"
               B.hr
               B.p "Emergency Contact 1"
