@@ -5,3 +5,4 @@ label_diseases: "Any known infectious diseases with which the attendee has been 
 label_medication_diet: "Details of any medicines / diets / treatments currently being taken / followed (including inhalers and EpiPens) and dosage details.  Include any non-prescription preparations, such as cough sweets, herbal medicines. Please state whether attendee will self medicate, what condition is being treated, and the specialist / hospital concerned if appropriate"
 label_dietary_reqs: "Details of any dietary requirements"
 label_faith_needs: "Details of faith or cultural needs eg dress, diet, holy days, toilet arrangements"
+label_general_activities: "Is attendee allowed to participate in adventurous activities?"

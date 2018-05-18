@@ -91,7 +91,7 @@ Telephone number: \field{<@ doctor_telephone @>}
 
 Activity authorisation
 
-Is attendee allowed to participate in general activities? \field{<@ general_activities @>}
+<@ label_general_activities @> \field{<@ general_activities @>}
 
 <@ label_swim @> \field{<@ swim @>}
 

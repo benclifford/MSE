@@ -264,7 +264,7 @@ regformHtml auth view editable ls = do
               textInputLineParagraph editable "doctor_telephone" view "Telephone"
 
               B.hr
-              boolInputParagraph editable "general_activities" view "Is attendee allowed to participate in adventurous activities?"
+              boolInputParagraph editable "general_activities" view (getLabel "general_activities" ls)
               boolInputParagraph editable "swim" view (getLabel "swim" ls)
               boolInputParagraph editable "vegetarian" view "Is attendee vegetarian?"
               B.hr
