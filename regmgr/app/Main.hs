@@ -271,6 +271,7 @@ regformHtml auth view editable ls = do
               B.hr
               B.p "Medical information"
               textInputLineParagraph editable "tetanus_date" view (getLabel "tetanus_date" ls)
+              B.hr
               optionalTextInputAreaParagraph editable "diseases" view (getLabel "diseases" ls)
               B.hr
               optionalTextInputAreaParagraph editable "allergies" view (getLabel "allergies" ls)
