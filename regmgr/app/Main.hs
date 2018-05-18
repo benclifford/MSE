@@ -590,6 +590,13 @@ instance CSV.ToField Bool
 
 
 
+humanReadableState :: String -> String
+humanReadableState "M" = "Imported from OSM - not invited"
+humanReadableState "N" = "Manually added - not invited"
+humanReadableState "I" = "Invited"
+humanReadableState "P" = "Partially completed"
+humanReadableState "C" = "Completed"
+humanReadableState s = "UNKNOWN STATE: " ++ s
 
 
 handleAdminTop :: User -> Handler B.Html
@@ -609,7 +616,7 @@ handleAdminTop _user = do
         (B.toHtml . firstname) r
         ". "
         "  State: "
-        (B.toHtml . state) r
+        (B.toHtml . humanReadableState . state) r
         " "
         (B.a ! BA.href (ub <> "/admin/sendInviteEmail/" <> auth))
             ("[Send invitation email to " <> (fromString . invite_email) r <> "]")
