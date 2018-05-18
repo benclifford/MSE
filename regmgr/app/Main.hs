@@ -265,6 +265,7 @@ regformHtml auth view editable ls = do
 
               B.hr
               boolInputParagraph editable "general_activities" view (getLabel "general_activities" ls)
+              boolInputParagraph editable "water_activities" view (getLabel "water_activities" ls)
               boolInputParagraph editable "swim" view (getLabel "swim" ls)
               boolInputParagraph editable "vegetarian" view "Is attendee vegetarian?"
               B.hr
@@ -542,6 +543,7 @@ registrationDigestiveForm init = Registration
   <*> "doctor_telephone" .: DF.string (Just $ doctor_telephone init)
 
   <*> "general_activities" .: DF.bool (Just $ general_activities init)  
+  <*> "water_activities" .: DF.bool (Just $ water_activities init)  
   <*> "swim" .: DF.bool (Just $ swim init)  
   <*> "vegetarian" .: DF.bool (Just $ vegetarian init)
 

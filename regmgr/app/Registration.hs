@@ -38,6 +38,7 @@ data Registration = Registration {
     doctor_address :: String,
     doctor_telephone :: String,
     general_activities :: Bool,
+    water_activities :: Bool,
     swim :: Bool,
     vegetarian :: Bool,
     tetanus_date :: String,

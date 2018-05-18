@@ -93,6 +93,8 @@ Activity authorisation
 
 <@ label_general_activities @> \field{<@ general_activities @>}
 
+<@ label_water_activities @> \field{<@ water_activities @>}
+
 <@ label_swim @> \field{<@ swim @>}
 
 \hrulefill
