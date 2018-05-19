@@ -211,17 +211,18 @@ updateByAuthAndModified conn val' auth oldDBTime = gupdateInto conn "regmgr_atte
 regformHtml :: String -> DF.View B.Html -> Bool -> [(String, String)] -> B.Html
 regformHtml auth view editable ls = do
             if editable
-              then B.p "Please fill out this registration form. We have put information that we know already into the form, but please check and correct those if that information is wrong."
+              then B.p "Please fill out this registration form. We have put information that we know already into the form, but please check and correct that if that information is wrong."
               else do
-                B.p "This is the information held for this attendee. Please edit and re-print this if information is incorrect."
                 B.p $ do
                   "If you have not done so already, "
                   (B.a ! BA.href ("/pdf/" <> fromString auth))
                     "please print out and sign the permission form"
                   "."
                 B.p $ do
+                  "If you have need to change any information, "
                   (B.a ! BA.href ("/unlock/" <> fromString auth))
-                    "Edit this form again - ***REMEMBER YOU WILL NEED TO PRINT AND SIGN A NEW COPY WITH ANY CHANGES***"
+                    "you can edit this form again here"
+                  ". You will need to print and sign a new copy with the changed information."
 
             -- QUESTION/DISCUSSION: type_ has to have a different name with an underscore because type is a reserved word.
             B.form ! BA.action ("/register/" <> (fromString auth))
