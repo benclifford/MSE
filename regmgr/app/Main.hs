@@ -379,7 +379,10 @@ readonlyInputText :: T.Text -> DF.View v -> B.Html
 readonlyInputText ref view = B.toHtml $ DF.fieldInputText ref view
 
 readonlyInputBool :: T.Text -> DF.View v -> B.Html
-readonlyInputBool ref view = B.toHtml $ DF.fieldInputBool ref view
+readonlyInputBool ref view = B.toHtml $
+  if DF.fieldInputBool ref view
+  then "Yes" :: String
+  else "No" :: String
 
 
 
