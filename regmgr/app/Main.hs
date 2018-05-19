@@ -262,11 +262,8 @@ regformHtml auth view editable ls = do
               textInputLineParagraph editable "doctor_name" view "Name"
               textInputLineParagraph editable "doctor_address" view "Address"
               textInputLineParagraph editable "doctor_telephone" view "Telephone"
-
               B.hr
-              boolInputParagraph editable "general_activities" view (getLabel "general_activities" ls)
-              boolInputParagraph editable "water_activities" view (getLabel "water_activities" ls)
-              boolInputParagraph editable "swim" view (getLabel "swim" ls)
+
               boolInputParagraph editable "vegetarian" view "Is attendee vegetarian?"
               B.hr
               B.p "Medical information"
@@ -281,7 +278,13 @@ regformHtml auth view editable ls = do
               optionalTextInputAreaParagraph editable "dietary_reqs" view (getLabel "dietary_reqs" ls)
               B.hr
               optionalTextInputAreaParagraph editable "faith_needs" view (getLabel "faith_needs" ls)
+
               B.hr
+              boolInputParagraph editable "general_activities" view (getLabel "general_activities" ls)
+              boolInputParagraph editable "water_activities" view (getLabel "water_activities" ls)
+              boolInputParagraph editable "swim" view (getLabel "swim" ls)
+              B.hr
+
 
               when editable $ submitButton "submit" "save" "Save partially completed form to finish later"
               " or "
