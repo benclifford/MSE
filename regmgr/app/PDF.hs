@@ -127,6 +127,10 @@ escapeLatex :: String -> String
 escapeLatex v = concat $ map c v
   where
     c '&' = "\\&"
+    c '%' = "\\%"
+    c '{' = "\\{"
+    c '}' = "\\}"
+    c '\\' = "{\\textbackslash}"
     c '\r' = ""
     c '\n' = " \\newline "
     c anything = [anything]
