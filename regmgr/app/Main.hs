@@ -120,7 +120,6 @@ type API = PingAPI :<|> InboundAuthenticatorAPI
       :<|> InvitePostAPI
       :<|> CSVAPI
       :<|> AdminTopAPI
-      :<|> MailTestAPI
       :<|> SendInviteEmailAPI
       :<|> FilesAPI
 
@@ -133,7 +132,6 @@ server1 = handlePing :<|> handleRegistrationGet :<|> handleHTMLPing
   :<|> handleInvitePost
   :<|> handleCSV
   :<|> handleAdminTop
-  :<|> handleMailTest
   :<|> handleSendInviteEmail
   :<|> handleFiles
 
@@ -653,11 +651,6 @@ handleAdminTop _user = do
     B.hr
     B.h2 "Attendees in DB"
     mapM_ registrantRow registrants :: B.Html
-
-handleMailTest :: User -> Handler B.Html
-handleMailTest _user = do
-  liftIO $ sendTop
-  return $ B.p "mail test response"
 
 handleSendInviteEmail :: String -> User -> Handler B.Html
 handleSendInviteEmail auth _user = do

@@ -28,21 +28,6 @@ import Config
 import DB
 import Registration
 
-sendTop = sendEmail $
-  Mail {
-    mailFrom = Address { addressName = Just "1st Merrow Scout Group camp registration"
-                       , addressEmail = "scoutcamp@hawaga.org.uk"
-                       }
-  , mailTo = [Address { addressName = Just "Ben Clifford"
-                      , addressEmail = "benc@hawaga.org.uk"
-                      }
-             ]
-  , mailCc = []
-  , mailBcc = []
-  , mailHeaders = [("Subject", "Scout camp invitation for TODONAME")]
-  , mailParts = [[plainPart "HELLO"]] -- should include HTML too with clickable link. double nested list to represent how mime is modelled.
-  }
-
 sendEmail :: Mail -> IO ()
 sendEmail msg = do
   config <- readConfig
@@ -83,7 +68,7 @@ sendInviteEmail auth = liftIO $ do
                          <> "<a href=\"" <> url <> "\">Click here for registration form</a>.</p>"
 
   let mail = Mail {
-    mailFrom = Address { addressName = Just "1st Merrow Scout Group Camp Registration"
+    mailFrom = Address { addressName = Just "1st Merrow Scout Camp Registration"
                        , addressEmail = "scoutcamp@hawaga.org.uk"
                        }
   , mailTo = [Address { addressName = Nothing
