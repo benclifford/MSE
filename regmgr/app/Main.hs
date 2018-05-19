@@ -282,12 +282,12 @@ regformHtml auth view editable ls = do
               boolInputParagraph editable "general_activities" view (getLabel "general_activities" ls)
               boolInputParagraph editable "water_activities" view (getLabel "water_activities" ls)
               boolInputParagraph editable "swim" view (getLabel "swim" ls)
-              B.hr
 
-
-              when editable $ submitButton "submit" "save" "Save partially completed form to finish later"
-              " or "
-              when editable $ submitButton "submit" "register" "Submit completed form and register for event"
+              when editable $ do
+                B.hr
+                submitButton "submit" "save" "Save partially completed form to finish later"
+                " or "
+                submitButton "submit" "register" "Submit completed form and register for event"
             B.hr
 
 getLabel :: String -> [(String, String)] -> B.Html
