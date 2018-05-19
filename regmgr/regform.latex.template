@@ -1,7 +1,7 @@
 \documentclass[oneside,a4paper]{memoir}
 
 \usepackage{xcolor}
-\usepackage[top=0.5cm,bottom=1.3cm, right=0.5cm, left=2cm]{geometry}
+\usepackage[top=1.3cm,bottom=1.3cm, right=2cm, left=2cm]{geometry}
 
 \newcommand{\field}[1]{\texttt{\textbf{#1}}}
 
@@ -89,19 +89,19 @@ Telephone number: \field{<@ doctor_telephone @>}
 
 \hrulefill
 
-Activity authorisation
+\newpage
 
-<@ label_general_activities @> \field{<@ general_activities @>}
+\textbf{\huge <@ lastname @>, <@ firstname @>}
+\hfill
+\textbf{\huge <@ section @>}
 
-<@ label_water_activities @> \field{<@ water_activities @>}
-
-<@ label_swim @> \field{<@ swim @>}
+\textbf{\huge Medical information}
 
 \hrulefill
 
-Medical information
-
 <@ label_tetanus_date @>: \field{<@ tetanus_date @>}
+
+\vspace{5mm}
 
 \begin{tabular*}{\textwidth}{@{} p{11cm} | p{6cm} @{}}
 \hline
@@ -138,6 +138,8 @@ Are \pronoun a vegetarian? & \field{<@ vegetarian @>} \\
 \hline
 \end{tabular*}
 
+\vfill
+
 \hrulefill
 
 I authorise the Scout Leader in charge to give permission for
@@ -151,17 +153,66 @@ send attendees home if necessary. I understand and agree that
 photographs and digital images of my \offspring taken at the
 event may be used for Scout Association publicity.
 
-Date: \fbox{\phantom{01 JANUARY 2018}}
-\hfill
-Relationship to attendee: \fbox{\phantom{PARENT LONGER RELATIONSHIP}}
+\begin{tabular*}{\textwidth}{@{} p{8cm} | p{8cm} @{}}
 
-Name of signer: \fbox{\phantom{JOHN SMITH ESQ LONGER}}
+\hline 
+
+Name of signer: & Relationship to attendee:  \\[50pt]
+
+\hline 
+
+Signature: & Date: \\[50pt]
+
+\hline
+
+\end{tabular*}
+
+If details are wrong, please change them online and reprint this form. PLEASE DO NOT AMEND BY HAND.
+
+\newpage
+
+\textbf{\huge <@ lastname @>, <@ firstname @>}
 \hfill
-Signature: \fbox{\phantom{This is how big an answer would be. SIGNATURE}}
+\textbf{\huge <@ section @>}
+
+\textbf{\huge Activity authorisation}
 
 \hrulefill
- 
+
+<@ label_general_activities @> \field{<@ general_activities @>}
+
+\hrulefill
+
+<@ label_water_activities @> \field{<@ water_activities @>}
+
+\hrulefill
+
+<@ label_swim @> \field{<@ swim @>}
+
+\hrulefill
+
+\vfill
+
+\hrulefill
+
+I hereby give permission for the person named above to take  part in the general acitivites which include those listed above and the special consent activities indicated by my signature above, organised by 1st Merrow and supervised by appropriately qualified Leaders / Instructors. I understand that the organisers reserve te right to refuse a participants permission to take part in any activity if it is felt that it is not suitable for them to do so.
+
+\begin{tabular*}{\textwidth}{@{} p{8cm} | p{8cm} @{}}
+
+\hline 
+
+Name of signer: & Relationship to attendee:  \\[50pt]
+
+\hline 
+
+Signature: & Date: \\[50pt]
+
+\hline
+
+\end{tabular*}
+
 If details are wrong, please change them online and reprint this form. PLEASE DO NOT AMEND BY HAND.
- 
+
+
 \end{document}
 
