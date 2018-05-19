@@ -267,7 +267,7 @@ regformHtml auth view editable ls = do
               boolInputParagraph editable "vegetarian" view "Is attendee vegetarian?"
               B.hr
               B.p "Medical information"
-              textInputLineParagraph editable "tetanus_date" view (getLabel "tetanus_date" ls)
+              dateInputParagraph editable "tetanus_date" view (getLabel "tetanus_date" ls)
               B.hr
               optionalTextInputAreaParagraph editable "diseases" view (getLabel "diseases" ls)
               B.hr
