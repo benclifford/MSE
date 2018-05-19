@@ -315,8 +315,8 @@ boolInputParagraph editable fieldName view description =
     then      B.p $ do
                 DB.label fieldName view description
                 ": "
+                DB.inputRadio False fieldName view
                 DB.errorList fieldName view
-                DB.inputCheckbox fieldName view
     else B.p $ do
                 DB.label fieldName view description
                 ": "
@@ -378,12 +378,19 @@ dateInputParagraph editable fieldName view description =
 readonlyInputText :: T.Text -> DF.View v -> B.Html
 readonlyInputText ref view = B.toHtml $ DF.fieldInputText ref view
 
-readonlyInputBool :: T.Text -> DF.View v -> B.Html
+readonlyInputBool :: T.Text -> DF.View B.Html -> B.Html
 readonlyInputBool ref view = B.toHtml $
-  if DF.fieldInputBool ref view
+  if isSelected $ DF.fieldInputChoice ref view 
   then "Yes" :: String
   else "No" :: String
-
+ where isSelected :: [(T.Text, B.Html, Bool)] -> Bool
+       isSelected l = let
+         selecteds = map (\(v, _, _) -> v) $ filter (\(_, _, s) -> s) l
+         [r] = selecteds
+         in case r of
+           "Y" -> True
+           "N" -> False
+           ev -> error $ "Missing pattern in isSelected: " ++ (show ev)
 
 
 handleRegistrationPost :: String -> [(String,String)] -> Handler B.Html
@@ -549,10 +556,11 @@ registrationDigestiveForm init = Registration
   <*> "doctor_address" .: DF.string (Just $ doctor_address init)
   <*> "doctor_telephone" .: DF.string (Just $ doctor_telephone init)
 
-  <*> "general_activities" .: DF.bool (Just $ general_activities init)  
-  <*> "water_activities" .: DF.bool (Just $ water_activities init)  
-  <*> "swim" .: DF.bool (Just $ swim init)  
-  <*> "vegetarian" .: DF.bool (Just $ vegetarian init)
+  <*> "general_activities" .: DF.choiceWith [("Y", (True, "yes")), ("N", (False, "no"))] (Just $ general_activities init) 
+  <*> "water_activities" .: DF.choiceWith [("Y", (True, "yes")), ("N", (False, "no"))] (Just $ water_activities init)  
+  <*> "swim" .: DF.choiceWith [("Y", (True, "yes")), ("N", (False, "no"))]  (Just $ swim init)
+
+  <*> "vegetarian" .: DF.choiceWith [("Y", (True, "yes")), ("N", (False, "no"))]  (Just $ vegetarian init)
 
   <*> "tetanus_date" .: DF.string (Just $ tetanus_date init)
   <*> "diseases" .: optionalTextMaybeForm (Just $ diseases init)
