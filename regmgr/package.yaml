@@ -65,6 +65,7 @@ executables:
     - servant-blaze
     - servant-cassava
     - text
+    - time
     - uuid
     - warp
     - yaml

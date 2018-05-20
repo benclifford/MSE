@@ -15,7 +15,10 @@ import qualified Data.Text.Lazy.IO as TIO
 import Database.PostgreSQL.Simple as PG
 import Database.PostgreSQL.Simple.SOP as PGS
 import Database.PostgreSQL.Simple.Time as PGT
+import Data.String (fromString)
 import qualified Data.Text as T
+import qualified Data.Time.Format as TF
+import qualified Data.Time.Calendar as TF
 import qualified Generics.SOP as GS
 import Generics.SOP ( NP( (:*) ) )
 import Servant
@@ -53,7 +56,11 @@ handlePDFForm auth = do
   te <- liftIO $ E.parseFileWith E.alternateSyntax "regform.latex.template"
   let template = either (\msg -> error $ "reading template: " ++ msg) (id) (E.eitherResult te)
 
-  let extrafields = E.fromPairs [("codes", "X TODO CODECODE Y")]
+  let extrafields = E.fromPairs
+        [("codes", "X TODO CODECODE Y")
+        ,("formatted_dob", fromString $ reformatDate $ dob val)
+        ,("formatted_tetanus_date", fromString $ reformatDate $ tetanus_date val)
+        ]
 
   let labelfields = E.fromPairs labels
 
@@ -147,4 +154,15 @@ fNms ((GS.Record _ fs) :* _) = fNmsRec fs
 fNmsRec :: GS.NP GS.FieldInfo a -> [String]
 fNmsRec GS.Nil = []
 fNmsRec (GS.FieldInfo nm :* rest) = nm : fNmsRec rest
+
+-- TODO: this field would be better in DB as a date, but I'm
+-- not changing it at the time of writing.
+-- So if the date isn't in the right format, leave the string
+-- as is.
+reformatDate :: String -> String
+reformatDate s = let
+  mparse = TF.parseTimeM True TF.defaultTimeLocale "%Y-%-m-%-d" s :: Maybe TF.Day
+  in case mparse of
+    Just d -> TF.formatTime TF.defaultTimeLocale "%d %B, %0Y" d
+    Nothing -> s
 

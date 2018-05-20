@@ -41,7 +41,7 @@ First Name: \field{<@ firstname @>}
 \hfill
 Last Name: \field{<@ lastname @>}
 \hfill
-Date of Birth: \field{<@ dob @>}
+Date of Birth: \field{<@ formatted_dob @>}
 
 Address: \field{<@ registrant_address @>}
 
@@ -99,7 +99,7 @@ Telephone number: \field{<@ doctor_telephone @>}
 
 \hrulefill
 
-<@ label_tetanus_date @>: \field{<@ tetanus_date @>}
+<@ label_tetanus_date @>: \field{<@ formatted_tetanus_date @>}
 
 \vspace{5mm}
 
