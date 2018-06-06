@@ -51,7 +51,8 @@ data Registration = Registration {
     remedy_piriton :: Bool,
     remedy_ibuprofen :: Bool,
     remedy_waspeze :: Bool,
-    remedy_anthisan :: Bool
+    remedy_anthisan :: Bool,
+    firearms :: Bool
   } deriving (GG.Generic, Show)
 
 instance PG.FromRow Registration

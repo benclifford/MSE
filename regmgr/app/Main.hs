@@ -290,6 +290,7 @@ regformHtml auth view editable ls = do
               boolInputParagraph editable "general_activities" view (getLabel "general_activities" ls)
               boolInputParagraph editable "water_activities" view (getLabel "water_activities" ls)
               boolInputParagraph editable "swim" view (getLabel "swim" ls)
+              boolInputParagraph editable "firearms" view (getLabel "firearms" ls)
 
               when editable $ do
                 B.hr
@@ -580,6 +581,7 @@ registrationDigestiveForm init = Registration
   <*> "remedy_ibuprofen" .: DF.choiceWith [("Y", (True, "yes")), ("N", (False, "no"))]  (Just $ swim init)
   <*> "remedy_waspeze" .: DF.choiceWith [("Y", (True, "yes")), ("N", (False, "no"))]  (Just $ swim init)
   <*> "remedy_anthisan" .: DF.choiceWith [("Y", (True, "yes")), ("N", (False, "no"))]  (Just $ swim init)
+  <*> "firearms" .: DF.choiceWith [("Y", (True, "yes")), ("N", (False, "no"))]  (Just $ swim init)
 
 
 entryEditable :: Registration -> Bool
