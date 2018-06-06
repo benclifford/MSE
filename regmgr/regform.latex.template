@@ -136,6 +136,14 @@ Are \pronoun a vegetarian? & \field{<@ vegetarian @>} \\
 <@ label_faith_needs @>: &
 \field{<@ faith_needs @>}  \\
 \hline
+
+<@ label_remedy_paracetamol @> & \field{<@ remedy_paracetamol @>} \\
+<@ label_remedy_piriton @> & \field{<@ remedy_piriton @>} \\
+<@ label_remedy_ibuprofen @> & \field{<@ remedy_ibuprofen @>} \\
+<@ label_remedy_waspeze @> & \field{<@ remedy_waspeze @>} \\
+<@ label_remedy_anthisan @> & \field{<@ remedy_anthisan @>} \\
+
+\hline
 \end{tabular*}
 
 \vfill

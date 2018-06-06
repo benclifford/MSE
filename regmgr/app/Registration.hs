@@ -46,7 +46,12 @@ data Registration = Registration {
     allergies :: String,
     medication_diet :: String,
     dietary_reqs :: String,
-    faith_needs :: String
+    faith_needs :: String,
+    remedy_paracetamol :: Bool,
+    remedy_piriton :: Bool,
+    remedy_ibuprofen :: Bool,
+    remedy_waspeze :: Bool,
+    remedy_anthisan :: Bool
   } deriving (GG.Generic, Show)
 
 instance PG.FromRow Registration

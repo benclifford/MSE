@@ -279,6 +279,14 @@ regformHtml auth view editable ls = do
               optionalTextInputAreaParagraph editable "faith_needs" view (getLabel "faith_needs" ls)
 
               B.hr
+              boolInputParagraph editable "remedy_paracetamol" view (getLabel "remedy_paracetamol" ls)
+              boolInputParagraph editable "remedy_piriton" view (getLabel "remedy_piriton" ls)
+              boolInputParagraph editable "remedy_ibuprofen" view (getLabel "remedy_ibuprofen" ls)
+              boolInputParagraph editable "remedy_waspeze" view (getLabel "remedy_waspeze" ls)
+              boolInputParagraph editable "remedy_anthisan" view (getLabel "remedy_anthisan" ls)
+
+
+              B.hr
               boolInputParagraph editable "general_activities" view (getLabel "general_activities" ls)
               boolInputParagraph editable "water_activities" view (getLabel "water_activities" ls)
               boolInputParagraph editable "swim" view (getLabel "swim" ls)
@@ -567,6 +575,11 @@ registrationDigestiveForm init = Registration
   <*> "medication_diet" .: optionalTextMaybeForm (Just $ medication_diet init)
   <*> "dietary_reqs" .: optionalTextMaybeForm (Just $ dietary_reqs init)
   <*> "faith_needs" .: optionalTextMaybeForm (Just $ faith_needs init)
+  <*> "remedy_paracetamol" .: DF.choiceWith [("Y", (True, "yes")), ("N", (False, "no"))]  (Just $ swim init)
+  <*> "remedy_piriton" .: DF.choiceWith [("Y", (True, "yes")), ("N", (False, "no"))]  (Just $ swim init)
+  <*> "remedy_ibuprofen" .: DF.choiceWith [("Y", (True, "yes")), ("N", (False, "no"))]  (Just $ swim init)
+  <*> "remedy_waspeze" .: DF.choiceWith [("Y", (True, "yes")), ("N", (False, "no"))]  (Just $ swim init)
+  <*> "remedy_anthisan" .: DF.choiceWith [("Y", (True, "yes")), ("N", (False, "no"))]  (Just $ swim init)
 
 
 entryEditable :: Registration -> Bool
