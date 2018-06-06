@@ -8,6 +8,7 @@
 -- | code to handle PDFs
 module PDF where
 
+import qualified Control.Exception as Exc
 import Control.Monad.IO.Class (liftIO)
 import qualified Data.ByteString.Lazy as BS 
 import Data.Monoid ( (<>) )
@@ -72,19 +73,26 @@ handlePDFForm auth = do
 
   let result = either (\msg -> error $ "rendering template: " ++ msg) (id) re
 
-  liftIO $ TIO.writeFile tempLatexFilename result
+  (r :: Either Exc.SomeException BS.ByteString) <- liftIO $ Exc.try $ do
 
-  liftIO $ callCommand $ "pdflatex " ++ tempLatexFilename
+    TIO.writeFile tempLatexFilename result
 
-  -- because we have to call latex a few times for page numbering
-  liftIO $ callCommand $ "pdflatex " ++ tempLatexFilename
-  liftIO $ callCommand $ "pdflatex " ++ tempLatexFilename
-  liftIO $ callCommand $ "pdflatex " ++ tempLatexFilename
+    callCommand $ "pdflatex " ++ tempLatexFilename
 
-  -- Note this is a lazy read, so can't delete temporary files if they
-  -- are then returned.
-  content <- liftIO $ BS.readFile tempPDFFilename
-  return content
+    -- because we have to call latex a few times for page numbering
+    callCommand $ "pdflatex " ++ tempLatexFilename
+    callCommand $ "pdflatex " ++ tempLatexFilename
+    callCommand $ "pdflatex " ++ tempLatexFilename
+
+    -- Note this is a lazy read, so can't delete temporary files if they
+    -- are then returned.
+    content <- BS.readFile tempPDFFilename
+    return content
+  case r of
+    Right v -> return v
+    Left err -> liftIO $ do
+      putStrLn $ "Exception rendering: " ++ (show err)
+      error $ "Rethrowing error: " ++ (show err)
 
 -- PDF content type
 -- only "renderable" from a bytestring - on the assumption that we'll
