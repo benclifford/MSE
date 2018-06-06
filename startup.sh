@@ -13,13 +13,13 @@ fi
 sudo /etc/init.d/postgresql start
 
 pushd osmgateway
-stack build osmgateway postgresql-simple-migration
+stack build osmgateway postgresql-simple-migration --library-profiling  --executable-profiling
 stack exec migrate init user=postgres
 stack exec migrate migrate user=postgres migrations/
 popd
 
 pushd regmgr
-stack build regmgr postgresql-simple-migration
+stack build regmgr postgresql-simple-migration --library-profiling  --executable-profiling
 stack exec migrate init user=postgres
 stack exec migrate migrate user=postgres migrations/
 popd
