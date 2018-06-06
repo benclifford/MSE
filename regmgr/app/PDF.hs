@@ -148,6 +148,8 @@ escapeLatex v = concat $ map c v
     c '\\' = "{\\textbackslash}"
     c '\r' = ""
     c '\n' = " \\newline "
+    c '\8220' = "``"
+    c '\8221' = "''"
     c anything = [anything]
 
 -- from postgres-simple-sop
