@@ -291,6 +291,7 @@ regformHtml auth view editable ls = do
               boolInputParagraph editable "water_activities" view (getLabel "water_activities" ls)
               boolInputParagraph editable "swim" view (getLabel "swim" ls)
               boolInputParagraph editable "firearms" view (getLabel "firearms" ls)
+              getLabelHtml "firearms_html" ls
 
               when editable $ do
                 B.hr
@@ -305,6 +306,14 @@ getLabel l ls = let
   in case ml of
     Just v -> B.toHtml v
     Nothing -> error $ "Missing label defintion for key " ++ show l
+
+getLabelHtml :: String -> [(String, String)] -> B.Html
+getLabelHtml l ls = let
+  ml = lookup ("label_" ++ l) ls
+  in case ml of
+    Just v -> B.preEscapedString v
+    Nothing -> error $ "Missing label defintion for key " ++ show l
+
 
 -- note that this isn't using the name hierarchy created by
 -- digestive functors - because (so far) I'm not using digestive
