@@ -674,7 +674,7 @@ handleSendInviteEmail auth _user = do
     B.p $ "An invitation was generated."
     B.p $ "A personalised invitation link has been included in the email."
     B.p $ do
-      "For debugging purposes, the link is also here:"
+      "The invitaion link is also available here, if you would like to send it manually via a different method: "
       (B.a ! BA.href ("/register/" <> fromString auth))
         "link"
 

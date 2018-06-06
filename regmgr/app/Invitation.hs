@@ -97,7 +97,7 @@ handleInvitePost reqBody user = do
         B.p $ "An invitation was generated for " <> (B.toHtml $ inv_firstname value) <> " " <> (B.toHtml $ inv_lastname value)
         B.p $ "A personalised invitation link has been included in the email."
         B.p $ do
-          "For debugging purposes, the link is also here:"
+          "The invitation is also available here, if you would like to send it manually via a different method: "
           (B.a ! BA.href ("/register/" <> fromString auth))
             "link"
 
