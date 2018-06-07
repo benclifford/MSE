@@ -76,7 +76,7 @@ import Lib
 import OptionalTextForm
 import PDF
 import Registration
-
+import Medication
 
 type PingAPI =
   "ping" :> Get '[PlainText] String
@@ -107,6 +107,10 @@ type AdminTopAPI = "admin" :> AdminAuth :> Get '[HTML] B.Html
 
 type FilesAPI = "file" :> Raw
 
+type MedicationAddGetAPI = "medication" :> "add" :> Capture "auth" String :> Get '[HTML] B.Html
+
+type MedicationAddPostAPI = "medication" :> "add" :> Capture "auth" String :> ReqBody '[FormUrlEncoded] [(String, String)] :> Post '[HTML] B.Html
+
 -- QUESTION/DISCUSSION: note how when updating this API type, eg to
 -- add an endpoint or to change an endpoint type, that there will be
 -- a type error if we dont' also update server1 to handle the change
@@ -122,6 +126,8 @@ type API = PingAPI :<|> InboundAuthenticatorAPI
       :<|> AdminTopAPI
       :<|> SendInviteEmailAPI
       :<|> FilesAPI
+      :<|> MedicationAddGetAPI
+      :<|> MedicationAddPostAPI
 
 server1 :: Server API
 server1 = handlePing :<|> handleRegistrationGet :<|> handleHTMLPing
@@ -134,6 +140,8 @@ server1 = handlePing :<|> handleRegistrationGet :<|> handleHTMLPing
   :<|> handleAdminTop
   :<|> handleSendInviteEmail
   :<|> handleFiles
+  :<|> handleMedicationAddGet
+  :<|> handleMedicationAddPost
 
 handlePing :: Handler String
 handlePing = return "PONG"
@@ -175,6 +183,8 @@ handleRegistrationGet auth = do
 
   let val = head entry -- assumes exactly one entry matches this authenticator. BUG: there might be none;  there might be more than 1 but that is statically guaranteed not to happen in the SQL schema (so checked by the SQL type system, not the Haskell type system) - so that's an 'error "impossible"' case.
 
+  meds :: [Medication] <- selectMedicationsByAuthenticator auth
+
   liftIO $ putStrLn $ "got sql result: " ++ show entry
 
   let title = "Registration for " <> B.toHtml (firstname val) <> " " <> B.toHtml (lastname val)
@@ -192,7 +202,7 @@ handleRegistrationGet auth = do
             jqueryHead
           B.body $ do
             B.h1 title
-            regformHtml auth view editable labels
+            regformHtml auth view editable labels meds
 
   liftIO $ putStrLn "end of req"
 
@@ -208,8 +218,8 @@ updateByAuthAndModified conn val' auth oldDBTime = gupdateInto conn "regmgr_atte
 
 -- | generates an HTML view of this form, which may be editable
 --   or fixed text.
-regformHtml :: String -> DF.View B.Html -> Bool -> [(String, String)] -> B.Html
-regformHtml auth view editable ls = do
+regformHtml :: String -> DF.View B.Html -> Bool -> [(String, String)] -> [Medication] -> B.Html
+regformHtml auth view editable ls meds = do
             if editable
               then B.p "Please fill out this registration form. We have put information that we know already into the form, but please check and correct that if that information is wrong."
               else do
@@ -223,6 +233,13 @@ regformHtml auth view editable ls = do
                   (B.a ! BA.href ("/unlock/" <> fromString auth))
                     "you can edit this form again here"
                   ". You will need to print and sign a new copy with the changed information."
+
+                B.p "=== START PLACEHOLDER MEDICATION EDITOR ==="
+                listOfMedications auth meds
+                B.p $ do
+                  (B.a ! BA.href ("/medication/add/" <> fromString auth))
+                    "Add medication (TODO make this look like a button?)"
+                B.p "=== PLACEHOLDER MEDICATION EDITOR ==="
 
             -- QUESTION/DISCUSSION: type_ has to have a different name with an underscore because type is a reserved word.
             B.form ! BA.action ("/register/" <> (fromString auth))
@@ -414,6 +431,7 @@ handleRegistrationPost :: String -> [(String,String)] -> Handler B.Html
 handleRegistrationPost auth reqBody = do
 
   entry :: [Registration] <- selectByAuthenticator auth
+  meds :: [Medication] <- selectMedicationsByAuthenticator auth
 
   let val = head entry -- assumes exactly one entry matches this authenticator. BUG: there might be none;  there might be more than 1 but that is statically guaranteed not to happen in the SQL schema (so checked by the SQL type system, not the Haskell type system) - so that's an 'error "impossible"' case.
 
@@ -498,7 +516,7 @@ handleRegistrationPost auth reqBody = do
             B.body $ do
               B.h1 title
               B.p "debug: handleUpdateForm - there are errors"
-              regformHtml auth view editable labels
+              regformHtml auth view editable labels meds
                
   return outputHtml
 
@@ -700,3 +718,54 @@ jqueryHead = do
          ! BA.href "/file/jquery-ui-1.12.1/jquery-ui.min.css"
   (B.script ! BA.src "/file/jquery-ui-1.12.1/jquery-ui.min.js") (return ())
 
+
+-- | Add a medication for the specified authenticator. Need to hand
+--   over a plain
+handleMedicationAddGet :: String -> Handler B.Html
+handleMedicationAddGet authenticator = do
+  view :: DF.View B.Html <- DF.getForm "Medication" (medicationDigestiveForm (blankMedicationForm authenticator))
+  return (medicationHtml authenticator view)
+
+-- | this should add a medication: save it to the database and then
+-- redirect the user back to the summary page (or display the
+-- summary page...)
+handleMedicationAddPost :: String -> [(String,String)] -> Handler B.Html
+handleMedicationAddPost auth reqBody = do
+
+  f <- DF.postForm "Medication" (medicationDigestiveForm (blankMedicationForm auth)) (servantPathEnv reqBody)
+  -- TODO ^ blankMedicationForm should be loaded from DB if this is an edit post.
+  case f of
+    (_, Just m) -> liftIO $ do
+      withDB $ \conn -> do
+        -- newDBTime <- dbNow conn -- no concurrency control per medication, which is a bit lame...
+
+        execute conn "INSERT INTO regmgr_medication (attendee_authenticator, medication_name, medication_reason, medication_dosage, medication_notes, medication_required_before_breakfast, medication_required_with_breakfast, medication_required_after_breakfast, medication_required_before_lunch, medication_required_after_lunch, medication_required_before_dinner, medication_required_after_dinner, medication_required_bedtime, medication_required_as_required, medication_required_other) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
+          (  (auth, medication_name m, medication_reason m, medication_dosage m, medication_notes m) 
+          PG.:. (medication_required_before_breakfast m, medication_required_with_breakfast m, medication_required_after_breakfast m, medication_required_before_lunch m, medication_required_after_lunch m, medication_required_before_dinner m, medication_required_after_dinner m)
+          PG.:. (medication_required_bedtime m, medication_required_as_required m, medication_required_other m)
+          )
+
+      return "handleMedicationAddPost: maybe this was saved TODO"
+    (view, Nothing) -> liftIO $ do
+      putStrLn "Medication POST did not validate in digestive functor"
+      return (medicationHtml auth view)
+
+
+listOfMedications :: String -> [Medication] -> B.Html
+listOfMedications _auth meds = do
+  B.hr
+  B.h2 "Medications"
+  case meds of
+    [] -> B.p "No medications registered"
+    _ -> mapM_ renderMed meds
+  
+  B.hr
+
+renderMed :: Medication -> B.Html
+renderMed m = B.p $ do
+  (B.toHtml . medication_name) m
+  " - "
+  " [DELETE (TODO)]"
+  " [EDIT (TODO)]"
+
+selectMedicationsByAuthenticator auth = withDB $ \conn -> PGS.gselectFrom conn "regmgr_medication where attendee_authenticator=?" [auth]
