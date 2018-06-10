@@ -111,6 +111,8 @@ type MedicationAddGetAPI = "medication" :> "add" :> Capture "auth" String :> Get
 
 type MedicationAddPostAPI = "medication" :> "add" :> Capture "auth" String :> ReqBody '[FormUrlEncoded] [(String, String)] :> Post '[HTML] B.Html
 
+type MedicationDeleteGetAPI = "medication" :> "delete" :> Capture "auth" String :> Capture "MedicationID" Integer :> Get '[HTML] B.Html
+
 -- QUESTION/DISCUSSION: note how when updating this API type, eg to
 -- add an endpoint or to change an endpoint type, that there will be
 -- a type error if we dont' also update server1 to handle the change
@@ -128,6 +130,7 @@ type API = PingAPI :<|> InboundAuthenticatorAPI
       :<|> FilesAPI
       :<|> MedicationAddGetAPI
       :<|> MedicationAddPostAPI
+      :<|> MedicationDeleteGetAPI
 
 server1 :: Server API
 server1 = handlePing :<|> handleRegistrationGet :<|> handleHTMLPing
@@ -142,6 +145,7 @@ server1 = handlePing :<|> handleRegistrationGet :<|> handleHTMLPing
   :<|> handleFiles
   :<|> handleMedicationAddGet
   :<|> handleMedicationAddPost
+  :<|> handleMedicationDeleteGet
 
 handlePing :: Handler String
 handlePing = return "PONG"
@@ -183,7 +187,7 @@ handleRegistrationGet auth = do
 
   let val = head entry -- assumes exactly one entry matches this authenticator. BUG: there might be none;  there might be more than 1 but that is statically guaranteed not to happen in the SQL schema (so checked by the SQL type system, not the Haskell type system) - so that's an 'error "impossible"' case.
 
-  meds :: [Medication] <- selectMedicationsByAuthenticator auth
+  meds :: [(Integer,Medication)] <- selectMedicationsIDsByAuthenticator auth
 
   liftIO $ putStrLn $ "got sql result: " ++ show entry
 
@@ -218,7 +222,7 @@ updateByAuthAndModified conn val' auth oldDBTime = gupdateInto conn "regmgr_atte
 
 -- | generates an HTML view of this form, which may be editable
 --   or fixed text.
-regformHtml :: String -> DF.View B.Html -> Bool -> [(String, String)] -> [Medication] -> B.Html
+regformHtml :: String -> DF.View B.Html -> Bool -> [(String, String)] -> [(Integer, Medication)] -> B.Html
 regformHtml auth view editable ls meds = do
             if editable
               then B.p "Please fill out this registration form. We have put information that we know already into the form, but please check and correct that if that information is wrong."
@@ -439,7 +443,7 @@ handleRegistrationPost :: String -> [(String,String)] -> Handler B.Html
 handleRegistrationPost auth reqBody = do
 
   entry :: [Registration] <- selectByAuthenticator auth
-  meds :: [Medication] <- selectMedicationsByAuthenticator auth
+  meds <- selectMedicationsIDsByAuthenticator auth
 
   let val = head entry -- assumes exactly one entry matches this authenticator. BUG: there might be none;  there might be more than 1 but that is statically guaranteed not to happen in the SQL schema (so checked by the SQL type system, not the Haskell type system) - so that's an 'error "impossible"' case.
 
@@ -761,20 +765,29 @@ handleMedicationAddPost auth reqBody = do
       return (medicationHtml auth view)
 
 
-listOfMedications :: String -> [Medication] -> B.Html
-listOfMedications _auth meds = do
+listOfMedications :: String -> [(Integer, Medication)] -> B.Html
+listOfMedications auth meds = do
   B.hr
   B.h2 "Medications"
   case meds of
     [] -> B.p "No medications registered"
-    _ -> mapM_ renderMed meds
+    _ -> mapM_ (renderMed auth) meds
   
   B.hr
 
-renderMed :: Medication -> B.Html
-renderMed m = B.p $ do
+renderMed :: String -> (Integer, Medication) -> B.Html
+renderMed auth (i,m) = B.p $ do
   (B.toHtml . medication_name) m
   " - "
-  " [DELETE (TODO)]"
+  (B.a ! BA.href ("/medication/delete/" <> fromString auth <> "/" <> fromString (show i)))
+    " [DELETE]"
   " [EDIT (TODO)]"
+
+handleMedicationDeleteGet auth key = do
+  liftIO $ do
+    putStrLn $ "Deleting medication " ++ show auth ++ " / " ++ show key
+    n <- withDB $ \conn -> PG.execute conn "DELETE FROM regmgr_medication WHERE attendee_authenticator = ? AND ident = ?" (auth, key)
+    putStrLn $ "Medication delete removed " ++ show n ++ " rows."
+
+  handleRegistrationGet auth
 

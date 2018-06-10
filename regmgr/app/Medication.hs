@@ -1,15 +1,17 @@
 {-# Language DeriveGeneric #-}
 {-# Language OverloadedStrings #-}
+{-# Language ScopedTypeVariables #-}
 
 module Medication where
 
-import Control.Monad.IO.Class (MonadIO)
+import Control.Monad.IO.Class (MonadIO, liftIO)
 
 import qualified GHC.Generics as GG
 import qualified Generics.SOP as GS
 import Database.PostgreSQL.Simple as PG
 import Database.PostgreSQL.Simple.SOP as PGS
 import Database.PostgreSQL.Simple.Time as PG
+import qualified Database.PostgreSQL.Simple.FromRow as PGFR
 
 import Data.Monoid ( (<>) )
 import Data.String (fromString)
@@ -174,3 +176,28 @@ labelCheckbox fieldName view description = do
  
 selectMedicationsByAuthenticator :: MonadIO m => String -> m [Medication]
 selectMedicationsByAuthenticator auth = withDB $ \conn -> PGS.gselectFrom conn "regmgr_medication where attendee_authenticator=?" [auth]
+
+selectMedicationsIDsByAuthenticator :: MonadIO m => String -> m [(Integer, Medication)]
+selectMedicationsIDsByAuthenticator auth = liftIO $ withDB $ \conn -> do
+  -- this is inefficient but it doesn't seem particularly straightforward
+  -- to get the primary key in addition to the Medication fields.
+  -- I'd hoped to be able to do something with :. but that doesn't
+  -- quite work.
+
+  keysl :: [[Integer]] <- PG.query conn "SELECT ident FROM regmgr_medication WHERE attendee_authenticator=?" [auth]
+
+  let keys = concat keysl -- fold away the structure
+
+  putStrLn $ "Read in keys: " ++ show keys
+
+  mapM (readKey conn) keys
+
+ where
+  readKey :: Connection -> Integer -> IO (Integer, Medication)
+  readKey conn key = do
+  -- meds really should have exactly one entry per key, but this code
+  -- doesn't check that invariant
+    [med] <- PGS.gselectFrom conn "regmgr_medication where attendee_authenticator=? and ident=?" (auth, key)
+    return (key, med)
+
+
