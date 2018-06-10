@@ -242,12 +242,10 @@ regformHtml auth view editable ls meds = do
 
                 B.p "Next, please enter any details of medications here:"
  
-                B.p "=== START PLACEHOLDER MEDICATION EDITOR ==="
                 listOfMedications auth meds
                 B.p $ do
                   (B.a ! BA.href ("/medication/add/" <> fromString auth))
-                    "Add medication (TODO make this look like a button?)"
-                B.p "=== PLACEHOLDER MEDICATION EDITOR ==="
+                    "Click here to add a new medication"
 
                 B.hr
 
