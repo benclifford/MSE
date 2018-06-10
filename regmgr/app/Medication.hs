@@ -172,34 +172,5 @@ labelCheckbox fieldName view description = do
   DB.errorList fieldName view
   DB.inputCheckbox fieldName view
  
-
-{-
-invitationHtml :: DF.View B.Html -> B.Html
-invitationHtml view = do
-  B.h1 "Invite new attendee manually"
-  B.p "Enter basic details of a new attendee here and an invitation will be emailed to them. Don't use this form to invite people who are already in the system."
-  B.form
-    ! BA.action "/admin/invite"
-    ! BA.method "post"
-    $ do
-      B.p $ do
-        DB.label "firstname" view "First name"
-        ": "
-        DB.errorList "firstname" view
-        DB.inputText "firstname" view
-      B.p $ do
-        DB.label "lastname" view "Family name"
-        ": "
-        DB.errorList "lastname" view
-        DB.inputText "lastname" view
-      B.p $ do
-        DB.label "email" view "Email"
-        ": "
-        DB.errorList "email" view
-        DB.inputText "email" view
-      DB.inputSubmit "Invite new attendee" 
-
--}
-
 selectMedicationsByAuthenticator :: MonadIO m => String -> m [Medication]
 selectMedicationsByAuthenticator auth = withDB $ \conn -> PGS.gselectFrom conn "regmgr_medication where attendee_authenticator=?" [auth]
