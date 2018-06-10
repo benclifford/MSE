@@ -224,22 +224,30 @@ regformHtml auth view editable ls meds = do
               then B.p "Please fill out this registration form. We have put information that we know already into the form, but please check and correct that if that information is wrong."
               else do
                 B.p $ do
-                  "If you have not done so already, "
-                  (B.a ! BA.href ("/pdf/" <> fromString auth))
-                    "please print out and sign the permission form"
+                  "If you need to change any information on the main form, you can "
+                  (B.a ! BA.href ("/unlock/" <> fromString auth)) "click here to edit the form again"
                   "."
-                B.p $ do
-                  "If you have need to change any information, "
-                  (B.a ! BA.href ("/unlock/" <> fromString auth))
-                    "you can edit this form again here"
-                  ". You will need to print and sign a new copy with the changed information."
 
+                B.p "Next, please enter any details of medications here:"
+ 
                 B.p "=== START PLACEHOLDER MEDICATION EDITOR ==="
                 listOfMedications auth meds
                 B.p $ do
                   (B.a ! BA.href ("/medication/add/" <> fromString auth))
                     "Add medication (TODO make this look like a button?)"
                 B.p "=== PLACEHOLDER MEDICATION EDITOR ==="
+
+                B.hr
+
+                B.p $ do
+                  "When you have entered details of medications, please "
+                  (B.a ! BA.href ("/pdf/" <> fromString auth)) "print out a copy of the complete registration pack"
+                  ", then sign each page, and return it with payment to your scout leader"
+
+                B.p "If you need to change anything, please come back to this page and edit the information here. You will need to print and sign a new copy of the registration pack"
+                  
+
+                B.hr 
 
             -- QUESTION/DISCUSSION: type_ has to have a different name with an underscore because type is a reserved word.
             B.form ! BA.action ("/register/" <> (fromString auth))
