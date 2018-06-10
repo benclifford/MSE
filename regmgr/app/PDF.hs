@@ -29,6 +29,7 @@ import Text.EDE ( (.=) )
 
 import Config
 import DB
+import Medication
 import Registration
 
 handlePDFForm :: String -> Handler BS.ByteString
@@ -40,6 +41,8 @@ handlePDFForm auth = do
   let (val :: Registration) = head entry -- assumes exactly one entry matches this authenticator. BUG: there might be none;  there might be more than 1 but that is statically guaranteed not to happen in the SQL schema (so checked by the SQL type system, not the Haskell type system) - so that's an 'error "impossible"' case.
 
   liftIO $ putStrLn $ "got sql result: " ++ show entry
+
+  meds <- selectMedicationsByAuthenticator auth
 
   labels <- liftIO $ readLabels
 
@@ -57,10 +60,13 @@ handlePDFForm auth = do
   te <- liftIO $ E.parseFileWith E.alternateSyntax "regform.latex.template"
   let template = either (\msg -> error $ "reading template: " ++ msg) (id) (E.eitherResult te)
 
+  let rows_medical = fromString $ renderMeds meds
+
   let extrafields = E.fromPairs
         [("codes", "X TODO CODECODE Y")
         ,("formatted_dob", fromString $ reformatDate $ dob val)
         ,("formatted_tetanus_date", fromString $ reformatDate $ tetanus_date val)
+        ,("rows_medical", rows_medical)
         ]
 
   let labelfields = E.fromPairs labels
@@ -175,4 +181,36 @@ reformatDate s = let
   in case mparse of
     Just d -> TF.formatTime TF.defaultTimeLocale "%d %B, %0Y" d
     Nothing -> s
+
+
+renderMeds :: [Medication] -> String
+renderMeds meds = (fromString . concat . map render) meds
+  where
+   render :: Medication -> String
+   render m =
+    escapeLatex (medication_name m) ++ " & " ++
+    escapeLatex (medication_reason m) ++ " & " ++
+    escapeLatex (medication_dosage m) ++ " & " ++
+
+    showX (medication_required_before_breakfast m) ++ " & " ++
+    showX (medication_required_with_breakfast m) ++ " & " ++ 
+    showX (medication_required_after_breakfast m) ++ " & " ++
+
+    showX (medication_required_before_lunch m) ++ " & " ++
+    showX (medication_required_after_lunch m) ++ " & " ++
+
+    showX (medication_required_before_dinner m) ++ " & " ++
+    showX (medication_required_after_dinner m) ++ " & " ++
+
+    showX (medication_required_bedtime m) ++ " & " ++
+
+    showX (medication_required_as_required m) ++ " & " ++
+    showX (medication_required_other m) ++ " & " ++
+
+    escapeLatex (medication_notes m) ++
+    " \\\\ \\hline "
+
+   showX :: Bool -> String
+   showX True = "X"
+   showX False = " "    
 

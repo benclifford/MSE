@@ -2,6 +2,7 @@
 
 \usepackage{xcolor}
 \usepackage[top=1.3cm,bottom=1.3cm, right=2cm, left=2cm]{geometry}
+\usepackage{pdflscape}
 
 \newcommand{\field}[1]{\texttt{\textbf{#1}}}
 
@@ -266,6 +267,85 @@ or shot cartridges for which a certificate is not needed.
 
 A sentence of 3 months to 3 years attracts a 5 year prohibition, shorter ones no prohibition but a longer
 one means a life ban.
+
+\newpage
+
+\begin{landscape}
+
+\textbf{\huge INCLUDE THIS COPY WITH REGISTRATION FORM}
+
+\medskip
+
+\textbf{\huge <@ lastname @>, <@ firstname @>}
+\hfill
+\textbf{\huge <@ section @>}
+
+\medskip
+
+\textbf{\huge Individual Medications}
+
+\medskip
+
+
+\begin{tabular}{| p{3cm} | p{3cm} | p{3cm} | p{0.8cm} | p{0.8cm} | p{0.8cm} | p{0.8cm} | p{0.8cm} | p{0.8cm} | p{0.8cm} | p{0.8cm} | p{0.8cm} | p{0.8cm} | p{3cm} | }
+
+\hline
+
+ & & & \multicolumn{10}{l}{When should it be taken?} \\
+
+\hline
+
+Medication & Reason & Dosage & Before Breakfast & With Breakfast & After Breakfast & Before Lunch & After Lunch & Before Dinner & After Dinner & Bed time & Only if required & Other & Notes \\
+
+\hline
+
+<@ rows_medical @>
+
+\end{tabular}
+
+If details are wrong, please change them online and reprint this form. PLEASE DO NOT AMEND BY HAND.
+
+\end{landscape}
+
+\newpage
+
+\begin{landscape}
+
+\textbf{\huge HAND THIS COPY IN WITH MEDICATION}
+
+\medskip
+
+\textbf{\huge <@ lastname @>, <@ firstname @>}
+\hfill
+\textbf{\huge <@ section @>}
+
+\medskip
+
+\textbf{\huge Individual Medications}
+
+\medskip
+
+
+\begin{tabular}{| p{3cm} | p{3cm} | p{3cm} | p{0.8cm} | p{0.8cm} | p{0.8cm} | p{0.8cm} | p{0.8cm} | p{0.8cm} | p{0.8cm} | p{0.8cm} | p{0.8cm} | p{0.8cm} | p{3cm} | }
+
+\hline
+
+ & & & \multicolumn{10}{l}{When should it be taken?} \\
+
+\hline
+
+Medication & Reason & Dosage & Before Breakfast & With Breakfast & After Breakfast & Before Lunch & After Lunch & Before Dinner & After Dinner & Bed time & Only if required & Other & Notes \\
+
+\hline
+
+<@ rows_medical @>
+
+\end{tabular}
+
+If details are wrong, please change them online and reprint this form. PLEASE DO NOT AMEND BY HAND.
+
+
+\end{landscape}
 
 \end{document}
 
