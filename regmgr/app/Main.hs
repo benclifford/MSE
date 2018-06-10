@@ -32,7 +32,7 @@ module Main where
 -- Generally operators will need to be explicitly imported so that
 -- they can be nicely used as operators without a package name.
 
-import Control.Monad (when, mapM_)
+import Control.Monad (when, mapM_, void)
 
 import Control.Monad.IO.Class (liftIO)
 
@@ -714,6 +714,13 @@ handleAdminTop _user = do
 handleSendInviteEmail :: String -> User -> Handler B.Html
 handleSendInviteEmail auth _user = do
   sendInviteEmail auth
+
+  [registrant] :: [Registration] <- selectByAuthenticator auth
+  let s = state registrant
+
+  when (s == "M" || s == "N") $
+    void $ withDB $ \conn -> execute conn "UPDATE regmgr_attendee SET state = ? WHERE authenticator = ?" ("I" :: String, auth)
+
   return $ do
     B.h1 "Invitation submitted"
     B.p $ "An invitation was generated."
