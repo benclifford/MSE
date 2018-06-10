@@ -110,18 +110,19 @@ medicationDigestiveForm init = Medication <$>
 
   <*> "medication_required_other" .: DF.bool (Just $ medication_required_other init)
 
-medicationHtml :: String -> DF.View B.Html -> B.Html
-medicationHtml auth view = do
+-- | if a key is specified, this generates a form that makes a POST
+--   to the edit url for updating; if not, it generates a form that
+--   makes a POST to the add url to make a new medication row.
+medicationHtml :: String -> DF.View B.Html -> Maybe Integer -> B.Html
+medicationHtml auth view mKey = do
   B.h1 "Medication Information"
 
   B.p "Enter the details of one medication on this form. You can add another medication later."
 
   B.form
--- XXX TODO: this can't be /add/ URL when we are updating...
--- or perhaps /add/ URL needs to behave differently
--- Bool param for add vs update so we can render this and
--- add/update button differently?
-    ! BA.action ("/medication/add/" <> fromString auth)
+    ! BA.action (case mKey of 
+      Nothing -> ("/medication/add/" <> fromString auth)
+      Just key -> ("/medication/edit/" <> fromString auth <> "/" <> fromString (show key)))
     ! BA.method "post"
     $ do
       B.p $ do
@@ -200,4 +201,7 @@ selectMedicationsIDsByAuthenticator auth = liftIO $ withDB $ \conn -> do
     [med] <- PGS.gselectFrom conn "regmgr_medication where attendee_authenticator=? and ident=?" (auth, key)
     return (key, med)
 
+selectMedicationsByAuthAndKey :: MonadIO m => String -> Integer -> m [Medication]
+selectMedicationsByAuthAndKey auth key = withDB $ \conn ->
+  PGS.gselectFrom conn "regmgr_medication where attendee_authenticator = ? and ident = ?" (auth, key)
 

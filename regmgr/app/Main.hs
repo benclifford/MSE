@@ -113,6 +113,10 @@ type MedicationAddPostAPI = "medication" :> "add" :> Capture "auth" String :> Re
 
 type MedicationDeleteGetAPI = "medication" :> "delete" :> Capture "auth" String :> Capture "MedicationID" Integer :> Get '[HTML] B.Html
 
+type MedicationEditGetAPI = "medication" :> "edit" :> Capture "auth" String :> Capture "MedicationID" Integer :> Get '[HTML] B.Html
+
+type MedicationEditPostAPI = "medication" :> "edit" :> Capture "auth" String :> Capture "MedicationID" Integer :> ReqBody '[FormUrlEncoded] [(String, String)] :> Post '[HTML] B.Html
+
 -- QUESTION/DISCUSSION: note how when updating this API type, eg to
 -- add an endpoint or to change an endpoint type, that there will be
 -- a type error if we dont' also update server1 to handle the change
@@ -131,6 +135,8 @@ type API = PingAPI :<|> InboundAuthenticatorAPI
       :<|> MedicationAddGetAPI
       :<|> MedicationAddPostAPI
       :<|> MedicationDeleteGetAPI
+      :<|> MedicationEditGetAPI
+      :<|> MedicationEditPostAPI
 
 server1 :: Server API
 server1 = handlePing :<|> handleRegistrationGet :<|> handleHTMLPing
@@ -146,6 +152,8 @@ server1 = handlePing :<|> handleRegistrationGet :<|> handleHTMLPing
   :<|> handleMedicationAddGet
   :<|> handleMedicationAddPost
   :<|> handleMedicationDeleteGet
+  :<|> handleMedicationEditGet
+  :<|> handleMedicationEditPost
 
 handlePing :: Handler String
 handlePing = return "PONG"
@@ -736,7 +744,7 @@ jqueryHead = do
 handleMedicationAddGet :: String -> Handler B.Html
 handleMedicationAddGet authenticator = do
   view :: DF.View B.Html <- DF.getForm "Medication" (medicationDigestiveForm (blankMedicationForm authenticator))
-  return (medicationHtml authenticator view)
+  return (medicationHtml authenticator view Nothing)
 
 -- | this should add a medication: save it to the database and then
 -- redirect the user back to the summary page (or display the
@@ -762,7 +770,7 @@ handleMedicationAddPost auth reqBody = do
       handleRegistrationGet auth
     (view, Nothing) -> liftIO $ do
       putStrLn "Medication POST did not validate in digestive functor"
-      return (medicationHtml auth view)
+      return (medicationHtml auth view Nothing)
 
 
 listOfMedications :: String -> [(Integer, Medication)] -> B.Html
@@ -780,8 +788,10 @@ renderMed auth (i,m) = B.p $ do
   (B.toHtml . medication_name) m
   " - "
   (B.a ! BA.href ("/medication/delete/" <> fromString auth <> "/" <> fromString (show i)))
-    " [DELETE]"
-  " [EDIT (TODO)]"
+    "[DELETE]"
+  " "
+  (B.a ! BA.href ("/medication/edit/" <> fromString auth <> "/" <> fromString (show i)))
+    "[EDIT]"
 
 handleMedicationDeleteGet auth key = do
   liftIO $ do
@@ -790,4 +800,31 @@ handleMedicationDeleteGet auth key = do
     putStrLn $ "Medication delete removed " ++ show n ++ " rows."
 
   handleRegistrationGet auth
+
+
+-- | c.f. handleMedicationAddGet - but instead of starting with a blank
+--   form, we start with a medication read from the DB
+
+handleMedicationEditGet auth key = do
+  [medication] <- selectMedicationsByAuthAndKey auth key
+  
+  view :: DF.View B.Html <- DF.getForm "Medication" (medicationDigestiveForm medication)
+  return (medicationHtml auth view (Just key))
+
+handleMedicationEditPost auth key reqBody = do
+
+  [medication] <- selectMedicationsByAuthAndKey auth key
+
+  f <- DF.postForm "Medication" (medicationDigestiveForm medication) (servantPathEnv reqBody)
+
+  case f of
+    (_, Just val) -> do
+      liftIO $ putStrLn $ "Medication edit submission OK " ++ (show key)
+
+      liftIO $ withDB $ \conn -> 
+        gupdateInto conn "regmgr_medication" "attendee_authenticator = ? AND ident = ?" val (auth, key)
+      handleRegistrationGet auth
+    (view, Nothing) -> do
+      liftIO $ putStrLn $ "Medication edit submission error " ++ (show key)
+      return (medicationHtml auth view (Just key))
 
