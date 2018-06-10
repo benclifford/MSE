@@ -3,6 +3,8 @@
 
 module Medication where
 
+import Control.Monad.IO.Class (MonadIO)
+
 import qualified GHC.Generics as GG
 import qualified Generics.SOP as GS
 import Database.PostgreSQL.Simple as PG
@@ -21,7 +23,7 @@ import Text.Digestive ( (.:) )
 
 import Text.Digestive.Blaze.Html5 as DB
 
-
+import DB
 import DigestiveBits
 
 data Medication = Medication {
@@ -198,3 +200,6 @@ invitationHtml view = do
       DB.inputSubmit "Invite new attendee" 
 
 -}
+
+selectMedicationsByAuthenticator :: MonadIO m => String -> m [Medication]
+selectMedicationsByAuthenticator auth = withDB $ \conn -> PGS.gselectFrom conn "regmgr_medication where attendee_authenticator=?" [auth]

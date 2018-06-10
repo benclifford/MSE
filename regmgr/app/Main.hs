@@ -768,4 +768,3 @@ renderMed m = B.p $ do
   " [DELETE (TODO)]"
   " [EDIT (TODO)]"
 
-selectMedicationsByAuthenticator auth = withDB $ \conn -> PGS.gselectFrom conn "regmgr_medication where attendee_authenticator=?" [auth]
