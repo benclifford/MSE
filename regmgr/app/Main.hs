@@ -743,8 +743,8 @@ handleMedicationAddPost auth reqBody = do
   f <- DF.postForm "Medication" (medicationDigestiveForm (blankMedicationForm auth)) (servantPathEnv reqBody)
   -- TODO ^ blankMedicationForm should be loaded from DB if this is an edit post.
   case f of
-    (_, Just m) -> liftIO $ do
-      withDB $ \conn -> do
+    (_, Just m) -> do
+      liftIO $ withDB $ \conn -> 
         -- newDBTime <- dbNow conn -- no concurrency control per medication, which is a bit lame...
 
         execute conn "INSERT INTO regmgr_medication (attendee_authenticator, medication_name, medication_reason, medication_dosage, medication_notes, medication_required_before_breakfast, medication_required_with_breakfast, medication_required_after_breakfast, medication_required_before_lunch, medication_required_after_lunch, medication_required_before_dinner, medication_required_after_dinner, medication_required_bedtime, medication_required_as_required, medication_required_other) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
@@ -753,7 +753,9 @@ handleMedicationAddPost auth reqBody = do
           PG.:. (medication_required_bedtime m, medication_required_as_required m, medication_required_other m)
           )
 
-      return "handleMedicationAddPost: maybe this was saved TODO"
+      -- if we go this far, we were successful at saving. Now redisplay
+      -- the participant page
+      handleRegistrationGet auth
     (view, Nothing) -> liftIO $ do
       putStrLn "Medication POST did not validate in digestive functor"
       return (medicationHtml auth view)
