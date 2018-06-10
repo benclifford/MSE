@@ -90,9 +90,9 @@ medicationDigestiveForm init = Medication <$>
       "attendee_authenticator" .: constString (attendee_authenticator init)
 
   <*> "medication_name" .: DF.string (Just $ medication_name init)
-  <*> "medication_reason" .: DF.string (Just $ medication_name init)
-  <*> "medication_dosage" .: DF.string (Just $ medication_name init)
-  <*> "medication_notes" .: DF.string (Just $ medication_name init)
+  <*> "medication_reason" .: DF.string (Just $ medication_reason init)
+  <*> "medication_dosage" .: DF.string (Just $ medication_dosage init)
+  <*> "medication_notes" .: DF.string (Just $ medication_notes init)
 
   <*> "medication_required_before_breakfast" .: DF.bool (Just $ medication_required_before_breakfast init)
   <*> "medication_required_with_breakfast" .: DF.bool (Just $ medication_required_with_breakfast init)
