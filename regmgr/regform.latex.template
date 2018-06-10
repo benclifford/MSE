@@ -47,7 +47,7 @@ Address: \field{<@ registrant_address @>}
 
 Telephone: \field{<@ registrant_telephone @>}
 \hfill
-Alternative telelphone number: \field{<@ registrant_telephone2 @>}
+Alternative telephone number: \field{<@ registrant_telephone2 @>}
 
 \hrulefill
 
