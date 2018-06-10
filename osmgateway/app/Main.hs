@@ -339,10 +339,10 @@ main = do
     putStrLn $ "Section name: " ++ _sectionname section
 
     -- we'll pick terms for this section that match a particular
-    -- rule - in this case, spring 2018 so that we get scouts that
-    -- are in the section near the start of 2018.
+    -- rule - in this case, summer 2018 so that we get scouts that
+    -- are in the section near the middle of 2018.
     let selectedTerms = filter (\t -> _termsectionid t == sectionid
-                                   && _termname t == "Spring 2018")
+                                   && _termname t == "Summer 2018")
                                terms
 
     putStrLn $ "Selected terms: "

@@ -317,7 +317,6 @@ regformHtml auth view editable ls meds = do
               boolInputParagraph editable "remedy_paracetamol" view (getLabel "remedy_paracetamol" ls)
               boolInputParagraph editable "remedy_piriton" view (getLabel "remedy_piriton" ls)
               boolInputParagraph editable "remedy_ibuprofen" view (getLabel "remedy_ibuprofen" ls)
-              boolInputParagraph editable "remedy_waspeze" view (getLabel "remedy_waspeze" ls)
               boolInputParagraph editable "remedy_anthisan" view (getLabel "remedy_anthisan" ls)
 
 
@@ -624,7 +623,6 @@ registrationDigestiveForm init = Registration
   <*> "remedy_paracetamol" .: DF.choiceWith [("Y", (True, "yes")), ("N", (False, "no"))]  (Just $ swim init)
   <*> "remedy_piriton" .: DF.choiceWith [("Y", (True, "yes")), ("N", (False, "no"))]  (Just $ swim init)
   <*> "remedy_ibuprofen" .: DF.choiceWith [("Y", (True, "yes")), ("N", (False, "no"))]  (Just $ swim init)
-  <*> "remedy_waspeze" .: DF.choiceWith [("Y", (True, "yes")), ("N", (False, "no"))]  (Just $ swim init)
   <*> "remedy_anthisan" .: DF.choiceWith [("Y", (True, "yes")), ("N", (False, "no"))]  (Just $ swim init)
   <*> "firearms" .: DF.choiceWith [("Y", (True, "yes")), ("N", (False, "no"))]  (Just $ swim init)
 
