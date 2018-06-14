@@ -422,24 +422,22 @@ main = do
                   )
           pure ()
 
-  -- TODO: this needs to be parameterised by section and by
-  -- event ID and term - so that we can run it repeatedly with multiple
-  -- event/section/term tuples.
+  for [("3940","323383","194039")] $ \(section,event,term) -> do
 
-  v <- getEventAttendeeList secrets "3940" "323383" "194039"
+    v <- getEventAttendeeList secrets section event term
 
-  print v
+    print v
 
-  for (_eaitems v) $ \attendee -> do
-    putStrLn $ "Scout " ++ (show $ _eascoutid attendee) ++ " is listed on " ++ (_eaeventid v) ++ " as: " ++ (_eaattending attendee)
+    for (_eaitems v) $ \attendee -> do
+      putStrLn $ "Scout " ++ (show $ _eascoutid attendee) ++ " is listed on " ++ (_eaeventid v) ++ " as: " ++ (_eaattending attendee)
 
-    execute conn "insert into osm_event_attendee (eventid, scoutid, attending) values (?,?,?)"
-      (
-        _eaeventid v
-      , _scoutid $ _eascoutid attendee
-      , _eaattending attendee
-      ) 
-    putStrLn "Attendee has been written to database."
+      execute conn "insert into osm_event_attendee (eventid, scoutid, attending) values (?,?,?)"
+        (
+          _eaeventid v
+        , _scoutid $ _eascoutid attendee
+        , _eaattending attendee
+        ) 
+      putStrLn "Attendee has been written to database."
 
 
   putStrLn "Closing database"
