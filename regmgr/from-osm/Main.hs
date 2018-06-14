@@ -33,7 +33,7 @@ process conn = do
   -- if they do, skip
   -- if they do not, create
 
-  scoutids :: [[Integer]] <- PG.query conn "SELECT scoutid FROM osm_event_attendee WHERE eventid = 323383 AND attending = 'Yes'" ()
+  scoutids :: [[Integer]] <- PG.query conn "SELECT scoutid FROM osm_event_attendee WHERE eventid = 381972 AND attending = 'Yes'" ()
 
   putStrLn $ "There are " ++ show (length scoutids) ++ " attendees who have said yes in OSM"
 
