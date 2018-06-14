@@ -302,6 +302,23 @@ Medication & Reason & Dosage & Before Breakfast & With Breakfast & After Breakfa
 
 \end{tabular}
 
+\bigskip
+
+\begin{tabular*}{\textwidth}{@{} p{8cm} | p{8cm} @{}}
+
+\hline 
+
+Name of signer: & Relationship to attendee:  \\[50pt]
+
+\hline 
+
+Signature: & Date: \\[50pt]
+
+\hline
+
+\end{tabular*}
+
+
 If details are wrong, please change them online and reprint this form. PLEASE DO NOT AMEND BY HAND.
 
 \end{landscape}
@@ -310,7 +327,7 @@ If details are wrong, please change them online and reprint this form. PLEASE DO
 
 \begin{landscape}
 
-\textbf{\huge HAND THIS COPY IN WITH MEDICATION}
+\textbf{\huge HAND THIS COPY IN WITH MEDICATION IN A CLEAR PLASTIC BAG}
 
 \medskip
 
@@ -340,6 +357,23 @@ Medication & Reason & Dosage & Before Breakfast & With Breakfast & After Breakfa
 <@ rows_medical @>
 
 \end{tabular}
+
+\bigskip
+
+\begin{tabular*}{\textwidth}{@{} p{8cm} | p{8cm} @{}}
+
+\hline 
+
+Name of signer: & Relationship to attendee:  \\[50pt]
+
+\hline 
+
+Signature: & Date: \\[50pt]
+
+\hline
+
+\end{tabular*}
+
 
 If details are wrong, please change them online and reprint this form. PLEASE DO NOT AMEND BY HAND.
 
