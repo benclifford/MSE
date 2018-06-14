@@ -296,7 +296,7 @@ getExtraData secrets section scoutid = do
 
 getEventAttendeeList :: Secrets -> String -> String -> String -> IO EventAttendeeList
 getEventAttendeeList secrets sectionid eventid termid = do
-  putStrLn "osmgateway: getting scout camp event"
+  putStrLn $ "osmgateway: getting event: eventid " ++ eventid
 
   let url = "https://www.onlinescoutmanager.co.uk/ext/events/event/?action=getAttendance&eventid=" ++ eventid ++ "&sectionid=" ++ sectionid ++ "&termid="++termid
 
@@ -442,8 +442,16 @@ importPeople secrets conn = do
 
 importEventAttendees :: Secrets -> Connection -> IO ()
 importEventAttendees secrets conn = do
-
-  for [("3940","381972","194040")] $ \(section,event,term) -> do
+   --  section,  event,  term
+  for [("3940","381972","194040") -- scouts
+      ,("27847","382012","257591") -- adventurers cubs
+      ,("3941","382015","257594") -- aspen beavers
+      ,("3942", "382010", "257597") -- discoverers cubs
+      ,("8653", "382011", "257600")  -- explorers cubs
+      ,("38985", "382005", "257583") -- maple beavers
+      ,("19172", "382006", "257604") -- willow beavers
+      ,("2570", "382016", "257607") -- explorers
+      ] $ \(section,event,term) -> do
 
     v <- getEventAttendeeList secrets section event term
 
