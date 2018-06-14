@@ -318,6 +318,17 @@ main = do
   secrets <- read <$> readFile "secrets.dat" :: IO Secrets
   print secrets
 
+  importPeople secrets conn
+
+  importEventAttendees secrets conn
+
+  putStrLn "Closing database"
+  close conn
+  putStrLn "osmgateway finished"
+
+importPeople :: Secrets -> Connection -> IO ()
+importPeople secrets conn = do
+
   terms <- getTerms secrets
 
   putStrLn "terms = "
@@ -422,6 +433,11 @@ main = do
                   )
           pure ()
 
+  pure ()
+
+importEventAttendees :: Secrets -> Connection -> IO ()
+importEventAttendees secrets conn = do
+
   for [("3940","381972","194040")] $ \(section,event,term) -> do
 
     v <- getEventAttendeeList secrets section event term
@@ -439,10 +455,8 @@ main = do
         ) 
       putStrLn "Attendee has been written to database."
 
+  pure ()
 
-  putStrLn "Closing database"
-  close conn
-  putStrLn "osmgateway finished"
 
 postWithResponse :: 
   (Show resp, FromJSON resp,
