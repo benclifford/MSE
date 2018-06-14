@@ -292,11 +292,11 @@ getExtraData secrets section scoutid = do
 
   return extraData
 
-getEventAttendeeList :: Secrets -> IO EventAttendeeList
-getEventAttendeeList secrets = do
+getEventAttendeeList :: Secrets -> String -> String -> String -> IO EventAttendeeList
+getEventAttendeeList secrets sectionid eventid termid = do
   putStrLn "osmgateway: getting scout camp event"
 
-  let url = "https://www.onlinescoutmanager.co.uk/ext/events/event/?action=getAttendance&eventid=323383&sectionid=3940&termid=194039"
+  let url = "https://www.onlinescoutmanager.co.uk/ext/events/event/?action=getAttendance&eventid=" ++ eventid ++ "&sectionid=" ++ sectionid ++ "&termid="++termid
 
   let postData = secretPostData secrets
 
@@ -422,7 +422,11 @@ main = do
                   )
           pure ()
 
-  v <- getEventAttendeeList secrets
+  -- TODO: this needs to be parameterised by section and by
+  -- event ID and term - so that we can run it repeatedly with multiple
+  -- event/section/term tuples.
+
+  v <- getEventAttendeeList secrets "3940" "323383" "194039"
 
   print v
 
