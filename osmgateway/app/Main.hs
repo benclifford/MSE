@@ -4,6 +4,7 @@
 {-# Language DeriveGeneric #-}
 module Main where
 
+import Control.Monad (when)
 import Control.Lens
 import Data.Aeson
 import Data.Aeson.Types (typeMismatch, parseEither)
@@ -15,6 +16,7 @@ import Database.PostgreSQL.Simple
 import GHC.Generics
 import Network.Wreq as WReq
 import Network.Wreq.Types (Postable)
+import qualified System.Environment as Env
 
 import Lib
 
@@ -318,7 +320,10 @@ main = do
   secrets <- read <$> readFile "secrets.dat" :: IO Secrets
   print secrets
 
-  importPeople secrets conn
+  args <- Env.getArgs
+
+  when (args == [])
+       (importPeople secrets conn)
 
   importEventAttendees secrets conn
 
