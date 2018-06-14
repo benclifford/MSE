@@ -422,7 +422,7 @@ main = do
                   )
           pure ()
 
-  for [("3940","323383","194039")] $ \(section,event,term) -> do
+  for [("3940","381972","194040")] $ \(section,event,term) -> do
 
     v <- getEventAttendeeList secrets section event term
 
