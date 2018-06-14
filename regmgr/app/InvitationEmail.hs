@@ -77,7 +77,7 @@ sendInviteEmail auth = liftIO $ do
              ]
   , mailCc = []
   , mailBcc = []
-  , mailHeaders = [("Subject", "Scout camp permission form for " <> pack fullname)]
+  , mailHeaders = [("Subject", "Group camp permission form for " <> pack fullname)]
   , mailParts = [[plaintext, htmltext] ] -- should include HTML too with clickable link. double nested list to represent how mime is modelled.
   }
 
