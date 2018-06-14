@@ -23,17 +23,25 @@ main :: IO ()
 main = do
   putStrLn "regmgr-from-osm: start"
 
-  withDB process
+  withDB $ process "381972"
+  withDB $ process "382012"
+  withDB $ process "382015"
+  withDB $ process "382010"
+  withDB $ process "382011"
+  withDB $ process "382005"
+  withDB $ process "382006"
+  withDB $ process "382016"
 
   putStrLn "regmgr-from-osm: done"
 
-process conn = do
+process :: String -> Connection -> IO [()]
+process eventid conn = do
   -- TODO: get a list of everyone registered for this event in OSM
   -- for each one, see if they have a registration record in regmgr
   -- if they do, skip
   -- if they do not, create
 
-  scoutids :: [[Integer]] <- PG.query conn "SELECT scoutid FROM osm_event_attendee WHERE eventid = 381972 AND attending = 'Yes'" ()
+  scoutids :: [[Integer]] <- PG.query conn "SELECT scoutid FROM osm_event_attendee WHERE eventid = ? AND attending = 'Yes'" ([eventid])
 
   putStrLn $ "There are " ++ show (length scoutids) ++ " attendees who have said yes in OSM"
 
