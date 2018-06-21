@@ -43,7 +43,8 @@ import Lib (User)
 data Invitation = Invitation {
     inv_firstname :: String,
     inv_lastname :: String,
-    inv_email :: String
+    inv_email :: String,
+    inv_section :: String
   }
 
 invitationDigestiveForm :: Monad m => DF.Form B.Html m Invitation
@@ -51,6 +52,7 @@ invitationDigestiveForm = Invitation
   <$> "firstname" .: nonEmptyString Nothing
   <*> "lastname" .: nonEmptyString Nothing
   <*> "email" .: nonEmptyString Nothing
+  <*> "section" .: nonEmptyString Nothing
 
 invitationHtml :: DF.View B.Html -> B.Html
 invitationHtml view = do
@@ -75,6 +77,11 @@ invitationHtml view = do
         ": "
         DB.errorList "email" view
         DB.inputText "email" view
+      B.p $ do
+        DB.label "section" view "Section"
+        ": "
+        DB.errorList "section" view
+        DB.inputText "section" view
       DB.inputSubmit "Invite new attendee" 
 
 
@@ -114,8 +121,8 @@ invite inv = do
   withDB $ \conn -> do
     newDBTime <- dbNow conn
 
-    execute conn "INSERT INTO regmgr_attendee (authenticator, state, modified, firstname, lastname, invite_email) VALUES (?,?,?,?,?,?)"
-      (auth, "N" :: String, newDBTime, inv_firstname inv, inv_lastname inv, inv_email inv)
+    execute conn "INSERT INTO regmgr_attendee (authenticator, state, modified, firstname, lastname, invite_email, section) VALUES (?,?,?,?,?,?,?)"
+      (auth, "N" :: String, newDBTime, inv_firstname inv, inv_lastname inv, inv_email inv, inv_section inv)
 
   return auth
 
