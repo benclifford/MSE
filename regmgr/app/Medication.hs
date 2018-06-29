@@ -51,7 +51,9 @@ data Medication = Medication {
 
   medication_required_as_required :: Bool,
 
-  medication_required_other :: Bool
+  medication_required_other :: Bool,
+
+  medication_self :: Bool
 
 } deriving (GG.Generic, Show)
 
@@ -82,7 +84,8 @@ blankMedicationForm authenticator = Medication {
 
   medication_required_bedtime = False,
   medication_required_as_required = False,
-  medication_required_other = False
+  medication_required_other = False,
+  medication_self = False
 }
 
 medicationDigestiveForm init = Medication <$>
@@ -109,6 +112,8 @@ medicationDigestiveForm init = Medication <$>
   <*> "medication_required_as_required" .: DF.bool (Just $ medication_required_as_required init)
 
   <*> "medication_required_other" .: DF.bool (Just $ medication_required_other init)
+
+  <*> "medication_self" .: DF.bool (Just $ medication_self init)
 
 -- | if a key is specified, this generates a form that makes a POST
 --   to the edit url for updating; if not, it generates a form that
@@ -145,6 +150,11 @@ medicationHtml auth view mKey = do
         ": "
         DB.errorList "medication_notes" view
         DB.inputText "medication_notes" view
+      B.p $ do
+        DB.label "medication_self" view "Will they self medicate?"
+        ": "
+        DB.errorList "medication_self" view
+        DB.inputCheckbox "medication_self" view
       B.p $ do
         "When should this medication be administered? Please tick all times it is required to be administered."
         B.br
@@ -204,4 +214,8 @@ selectMedicationsIDsByAuthenticator auth = liftIO $ withDB $ \conn -> do
 selectMedicationsByAuthAndKey :: MonadIO m => String -> Integer -> m [Medication]
 selectMedicationsByAuthAndKey auth key = withDB $ \conn ->
   PGS.gselectFrom conn "regmgr_medication where attendee_authenticator = ? and ident = ?" (auth, key)
+
+selectAllMedications :: MonadIO m => m [Medication]
+selectAllMedications = withDB $ \conn ->
+  PGS.gselectFrom conn "regmgr_medication" ()
 

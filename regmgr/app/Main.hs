@@ -77,6 +77,7 @@ import OptionalTextForm
 import PDF
 import Registration
 import Medication
+import qualified MedicationReport as MR
 
 type PingAPI =
   "ping" :> Get '[PlainText] String
@@ -102,6 +103,8 @@ type MailTestAPI = "admin" :> "mailtest" :> AdminAuth :> Get '[HTML] B.Html
 type SendInviteEmailAPI = "admin" :> "sendInviteEmail" :> Capture "uuid" String :> AdminAuth :> Get '[HTML] B.Html
 
 type CSVAPI = "admin" :> "csv" :> AdminAuth :> Get '[SC.CSV] (Headers '[Header "Content-Disposition" String] [Registration])
+type CSVMedicationAPI = "admin" :> "csv" :> "medication" :> "raw" :> AdminAuth :> Get '[SC.CSV] (Headers '[Header "Content-Disposition" String] [Medication])
+type CSVMedicationReportAPI = "admin" :> "csv" :> "medication" :> AdminAuth :> Get '[SC.CSV] (Headers '[Header "Content-Disposition" String] [MR.MedicationReport])
 
 type AdminTopAPI = "admin" :> AdminAuth :> Get '[HTML] B.Html
 
@@ -129,6 +132,8 @@ type API = PingAPI :<|> InboundAuthenticatorAPI
       :<|> InviteGetAPI
       :<|> InvitePostAPI
       :<|> CSVAPI
+      :<|> CSVMedicationAPI
+      :<|> CSVMedicationReportAPI
       :<|> AdminTopAPI
       :<|> SendInviteEmailAPI
       :<|> FilesAPI
@@ -146,6 +151,8 @@ server1 = handlePing :<|> handleRegistrationGet :<|> handleHTMLPing
   :<|> handleInviteGet
   :<|> handleInvitePost
   :<|> handleCSV
+  :<|> handleCSVMedication
+  :<|> handleCSVMedicationReport
   :<|> handleAdminTop
   :<|> handleSendInviteEmail
   :<|> handleFiles
@@ -252,7 +259,7 @@ regformHtml auth view editable ls meds = do
                 B.p $ do
                   "When you have entered details of medications, please "
                   (B.a ! BA.href ("/pdf/" <> fromString auth)) "print out a copy of the complete registration pack"
-                  ", then sign each page, and return it with payment to your scout leader"
+                  ", then sign each page, and return it to your leader"
 
                 B.p "If you need to change anything, please come back to this page and edit the information here. You will need to print and sign a new copy of the registration pack"
                   
@@ -321,9 +328,10 @@ regformHtml auth view editable ls meds = do
 
 
               B.hr
+              B.p "All activities will be run in accordance with The Scout Association's Safety Rules. Not all the activities listed will be available and attendees do not have to participate in any adventurous activities they do not wish to."
+
               boolInputParagraph editable "general_activities" view (getLabel "general_activities" ls)
-              boolInputParagraph editable "water_activities" view (getLabel "water_activities" ls)
-              boolInputParagraph editable "swim" view (getLabel "swim" ls)
+
               boolInputParagraph editable "firearms" view (getLabel "firearms" ls)
               getLabelHtml "firearms_html" ls
 
@@ -609,8 +617,8 @@ registrationDigestiveForm init = Registration
   <*> "doctor_telephone" .: DF.string (Just $ doctor_telephone init)
 
   <*> "general_activities" .: DF.choiceWith [("Y", (True, "yes")), ("N", (False, "no"))] (Just $ general_activities init) 
-  <*> "water_activities" .: DF.choiceWith [("Y", (True, "yes")), ("N", (False, "no"))] (Just $ water_activities init)  
-  <*> "swim" .: DF.choiceWith [("Y", (True, "yes")), ("N", (False, "no"))]  (Just $ swim init)
+  <*> (pure False)
+  <*> (pure False)
 
   <*> "vegetarian" .: DF.choiceWith [("Y", (True, "yes")), ("N", (False, "no"))]  (Just $ vegetarian init)
 
@@ -620,11 +628,11 @@ registrationDigestiveForm init = Registration
   <*> "medication_diet" .: optionalTextMaybeForm (Just $ medication_diet init)
   <*> "dietary_reqs" .: optionalTextMaybeForm (Just $ dietary_reqs init)
   <*> "faith_needs" .: optionalTextMaybeForm (Just $ faith_needs init)
-  <*> "remedy_paracetamol" .: DF.choiceWith [("Y", (True, "yes")), ("N", (False, "no"))]  (Just $ swim init)
-  <*> "remedy_piriton" .: DF.choiceWith [("Y", (True, "yes")), ("N", (False, "no"))]  (Just $ swim init)
-  <*> "remedy_ibuprofen" .: DF.choiceWith [("Y", (True, "yes")), ("N", (False, "no"))]  (Just $ swim init)
-  <*> "remedy_anthisan" .: DF.choiceWith [("Y", (True, "yes")), ("N", (False, "no"))]  (Just $ swim init)
-  <*> "firearms" .: DF.choiceWith [("Y", (True, "yes")), ("N", (False, "no"))]  (Just $ swim init)
+  <*> "remedy_paracetamol" .: DF.choiceWith [("Y", (True, "yes")), ("N", (False, "no"))]  (Just $ remedy_paracetamol init)
+  <*> "remedy_piriton" .: DF.choiceWith [("Y", (True, "yes")), ("N", (False, "no"))]  (Just $ remedy_piriton init)
+  <*> "remedy_ibuprofen" .: DF.choiceWith [("Y", (True, "yes")), ("N", (False, "no"))]  (Just $ remedy_ibuprofen init)
+  <*> "remedy_anthisan" .: DF.choiceWith [("Y", (True, "yes")), ("N", (False, "no"))]  (Just $ remedy_anthisan init)
+  <*> "firearms" .: DF.choiceWith [("Y", (True, "yes")), ("N", (False, "no"))]  (Just $ firearms init)
 
 
 entryEditable :: Registration -> Bool
@@ -661,6 +669,24 @@ instance CSV.ToField PG.ZonedTimestamp
 instance CSV.ToField Bool
   where
     toField bool = CSV.toField (show bool)
+
+handleCSVMedication :: User -> Handler (Headers '[Header "Content-Disposition" String] [Medication])
+handleCSVMedication _user = do
+  
+  medications :: [Medication] <- selectAllMedications
+  return $ addHeader "attachment;filename=\"medications.csv\"" medications
+
+instance CSV.ToNamedRecord Medication
+instance CSV.DefaultOrdered Medication
+
+handleCSVMedicationReport :: User -> Handler (Headers '[Header "Content-Disposition" String] [MR.MedicationReport])
+handleCSVMedicationReport _user = do
+  
+  medications :: [MR.MedicationReport] <- MR.selectAllForMedicationReport
+  return $ addHeader "attachment;filename=\"medication_report.csv\"" medications
+
+instance CSV.ToNamedRecord MR.MedicationReport
+instance CSV.DefaultOrdered MR.MedicationReport
 
 
 
@@ -762,10 +788,10 @@ handleMedicationAddPost auth reqBody = do
       liftIO $ withDB $ \conn -> 
         -- newDBTime <- dbNow conn -- no concurrency control per medication, which is a bit lame...
 
-        execute conn "INSERT INTO regmgr_medication (attendee_authenticator, medication_name, medication_reason, medication_dosage, medication_notes, medication_required_before_breakfast, medication_required_with_breakfast, medication_required_after_breakfast, medication_required_before_lunch, medication_required_after_lunch, medication_required_before_dinner, medication_required_after_dinner, medication_required_bedtime, medication_required_as_required, medication_required_other) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
+        execute conn "INSERT INTO regmgr_medication (attendee_authenticator, medication_name, medication_reason, medication_dosage, medication_notes, medication_required_before_breakfast, medication_required_with_breakfast, medication_required_after_breakfast, medication_required_before_lunch, medication_required_after_lunch, medication_required_before_dinner, medication_required_after_dinner, medication_required_bedtime, medication_required_as_required, medication_required_other, medication_self) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
           (  (auth, medication_name m, medication_reason m, medication_dosage m, medication_notes m) 
           PG.:. (medication_required_before_breakfast m, medication_required_with_breakfast m, medication_required_after_breakfast m, medication_required_before_lunch m, medication_required_after_lunch m, medication_required_before_dinner m, medication_required_after_dinner m)
-          PG.:. (medication_required_bedtime m, medication_required_as_required m, medication_required_other m)
+          PG.:. (medication_required_bedtime m, medication_required_as_required m, medication_required_other m, medication_self m)
           )
 
       -- if we go this far, we were successful at saving. Now redisplay

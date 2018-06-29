@@ -185,17 +185,16 @@ If details are wrong, please change them online and reprint this form. PLEASE DO
 
 \textbf{\huge Activity authorisation}
 
+\medskip
+
+All activities will be run in accordance with The Scout Association's Safety Rules. Not all the activities listed will be available and attendees
+do not have to participate in any adventurous activities they do not wish to.
+
+\medskip
+
 \hrulefill
 
 <@ label_general_activities @> \field{<@ general_activities @>}
-
-\hrulefill
-
-<@ label_water_activities @> \field{<@ water_activities @>}
-
-\hrulefill
-
-<@ label_swim @> \field{<@ swim @>}
 
 \hrulefill
 
@@ -286,15 +285,15 @@ one means a life ban.
 \medskip
 
 
-\begin{tabular}{| p{3cm} | p{3cm} | p{3cm} | p{0.8cm} | p{0.8cm} | p{0.8cm} | p{0.8cm} | p{0.8cm} | p{0.8cm} | p{0.8cm} | p{0.8cm} | p{0.8cm} | p{0.8cm} | p{3cm} | }
+\begin{tabular}{| p{2.5cm} | p{2.5cm} | p{2.5cm} | p{2cm} | p{0.8cm} | p{0.8cm} | p{0.8cm} | p{0.8cm} | p{0.8cm} | p{0.8cm} | p{0.8cm} | p{0.8cm} | p{0.8cm} | p{0.8cm} | p{2.5cm} | }
 
 \hline
 
- & & & \multicolumn{10}{l}{When should it be taken?} \\
+ & & & & \multicolumn{10}{l}{When should it be taken?} \\
 
 \hline
 
-Medication & Reason & Dosage & Before Breakfast & With Breakfast & After Breakfast & Before Lunch & After Lunch & Before Dinner & After Dinner & Bed time & Only if required & Other & Notes \\
+Medication & Reason & Dosage & Will they self medicate? & Before Breakfast & With Breakfast & After Breakfast & Before Lunch & After Lunch & Before Dinner & After Dinner & Bed time & Only if required & Other & Notes \\
 
 \hline
 
@@ -302,7 +301,7 @@ Medication & Reason & Dosage & Before Breakfast & With Breakfast & After Breakfa
 
 \end{tabular}
 
-\bigskip
+\vfill
 
 \begin{tabular*}{\textwidth}{@{} p{8cm} | p{8cm} @{}}
 
@@ -318,6 +317,7 @@ Signature: & Date: \\[50pt]
 
 \end{tabular*}
 
+Please return one copy with the Consent Form by 22 June 2018. Please put another identical copy in a named clear plastic bag with the medication and hand it in to Katie Philipson on arrival at camp. If you wish to discuss the form in advance of camp please email Katie Philipson on katie.philipson@icloud.com.
 
 If details are wrong, please change them online and reprint this form. PLEASE DO NOT AMEND BY HAND.
 
@@ -341,16 +341,15 @@ If details are wrong, please change them online and reprint this form. PLEASE DO
 
 \medskip
 
-
-\begin{tabular}{| p{3cm} | p{3cm} | p{3cm} | p{0.8cm} | p{0.8cm} | p{0.8cm} | p{0.8cm} | p{0.8cm} | p{0.8cm} | p{0.8cm} | p{0.8cm} | p{0.8cm} | p{0.8cm} | p{3cm} | }
-
-\hline
-
- & & & \multicolumn{10}{l}{When should it be taken?} \\
+\begin{tabular}{| p{2.5cm} | p{2.5cm} | p{2.5cm} | p{2cm} | p{0.8cm} | p{0.8cm} | p{0.8cm} | p{0.8cm} | p{0.8cm} | p{0.8cm} | p{0.8cm} | p{0.8cm} | p{0.8cm} | p{0.8cm} | p{2.5cm} | }
 
 \hline
 
-Medication & Reason & Dosage & Before Breakfast & With Breakfast & After Breakfast & Before Lunch & After Lunch & Before Dinner & After Dinner & Bed time & Only if required & Other & Notes \\
+ & & & & \multicolumn{10}{l}{When should it be taken?} \\
+
+\hline
+
+Medication & Reason & Dosage & Will they self medicate? & Before Breakfast & With Breakfast & After Breakfast & Before Lunch & After Lunch & Before Dinner & After Dinner & Bed time & Only if required & Other & Notes \\
 
 \hline
 
@@ -358,7 +357,7 @@ Medication & Reason & Dosage & Before Breakfast & With Breakfast & After Breakfa
 
 \end{tabular}
 
-\bigskip
+\vfill
 
 \begin{tabular*}{\textwidth}{@{} p{8cm} | p{8cm} @{}}
 
@@ -374,6 +373,7 @@ Signature: & Date: \\[50pt]
 
 \end{tabular*}
 
+Please return one copy with the Consent Form by 22 June 2018. Please put another identical copy in a named clear plastic bag with the medication and hand it in to Katie Philipson on arrival at camp. If you wish to discuss the form in advance of camp please email Katie Philipson on katie.philipson@icloud.com.
 
 If details are wrong, please change them online and reprint this form. PLEASE DO NOT AMEND BY HAND.
 

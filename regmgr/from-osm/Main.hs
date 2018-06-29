@@ -31,6 +31,10 @@ main = do
   withDB $ process "382005"
   withDB $ process "382006"
   withDB $ process "382016"
+  withDB $ process "384947"
+  withDB $ process "384948"
+  withDB $ process "384949"
+
 
   putStrLn "regmgr-from-osm: done"
 
@@ -147,7 +151,9 @@ getExtraDataFirstContactEmail conn scoutid = do
   e2 <- getExtraDataEmail conn scoutid "contact_primary_2" "email1"
   e3 <- getExtraDataEmail conn scoutid "contact_primary_1" "email2"
   e4 <- getExtraDataEmail conn scoutid "contact_primary_2" "email2"
-  let es :: [String] = concat (maybeToList <$> [e1,e2,e3,e4])
+  e5 <- getExtraDataEmail conn scoutid "contact_primary_member" "email1"
+  e6 <- getExtraDataEmail conn scoutid "contact_primary_member" "email2"
+  let es :: [String] = concat (maybeToList <$> [e1,e2,e3,e4,e5,e6])
   case es :: [String] of
     [] -> return ""
     (e:_) -> return (e :: String)

@@ -451,6 +451,10 @@ importEventAttendees secrets conn = do
       ,("38985", "382005", "257583") -- maple beavers
       ,("19172", "382006", "257604") -- willow beavers
       ,("2570", "382016", "257607") -- explorers
+      ,("43612", "384948", "273440") -- exec
+      ,("3943", "384947", "257587") -- leaders
+      ,("43616", "384949", "273466") -- occasional helpers
+      
       ] $ \(section,event,term) -> do
 
     v <- getEventAttendeeList secrets section event term
