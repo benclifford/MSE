@@ -148,6 +148,7 @@ escapeLatex :: String -> String
 escapeLatex v = concat $ map c v
   where
     c '&' = "\\&"
+    c '$' = "\\$"
     c '%' = "\\%"
     c '{' = "\\{"
     c '}' = "\\}"
@@ -156,6 +157,13 @@ escapeLatex v = concat $ map c v
     c '\n' = " \\newline "
     c '\8220' = "``"
     c '\8221' = "''"
+    c '\8217' = "'"
+
+    c '\8236' = " "
+    c '\8237' = " "
+    c '\8238' = " "
+
+    c '_' = "\\_"
     c anything = [anything]
 
 -- from postgres-simple-sop
