@@ -321,6 +321,8 @@ regformHtml auth view editable ls meds = do
 
 
               B.hr
+              B.p "All activities will be run in accordance with The Scout Association's Safety Rules. Not all the activities listed will be available and attendees do not have to participate in any adventurous activities they do not wish to."
+
               boolInputParagraph editable "general_activities" view (getLabel "general_activities" ls)
               boolInputParagraph editable "water_activities" view (getLabel "water_activities" ls)
               boolInputParagraph editable "swim" view (getLabel "swim" ls)
