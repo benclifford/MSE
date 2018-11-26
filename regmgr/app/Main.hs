@@ -105,6 +105,7 @@ type SendInviteEmailAPI = "admin" :> "sendInviteEmail" :> Capture "uuid" String 
 type CSVAPI = "admin" :> "csv" :> AdminAuth :> Get '[SC.CSV] (Headers '[Header "Content-Disposition" String] [Registration])
 type CSVMedicationAPI = "admin" :> "csv" :> "medication" :> "raw" :> AdminAuth :> Get '[SC.CSV] (Headers '[Header "Content-Disposition" String] [Medication])
 type CSVMedicationReportAPI = "admin" :> "csv" :> "medication" :> AdminAuth :> Get '[SC.CSV] (Headers '[Header "Content-Disposition" String] [MR.MedicationReport])
+type CSVMedicationReportAPI2 = "admin" :> "csv" :> "medication" :> Capture "slot" String :> AdminAuth :> Get '[SC.CSV] (Headers '[Header "Content-Disposition" String] [MR.MedicationReport])
 
 type AdminTopAPI = "admin" :> AdminAuth :> Get '[HTML] B.Html
 
@@ -134,6 +135,7 @@ type API = PingAPI :<|> InboundAuthenticatorAPI
       :<|> CSVAPI
       :<|> CSVMedicationAPI
       :<|> CSVMedicationReportAPI
+      :<|> CSVMedicationReportAPI2
       :<|> AdminTopAPI
       :<|> SendInviteEmailAPI
       :<|> FilesAPI
@@ -153,6 +155,7 @@ server1 = handlePing :<|> handleRegistrationGet :<|> handleHTMLPing
   :<|> handleCSV
   :<|> handleCSVMedication
   :<|> handleCSVMedicationReport
+  :<|> handleCSVMedicationReport2
   :<|> handleAdminTop
   :<|> handleSendInviteEmail
   :<|> handleFiles
@@ -684,6 +687,48 @@ handleCSVMedicationReport _user = do
   
   medications :: [MR.MedicationReport] <- MR.selectAllForMedicationReport
   return $ addHeader "attachment;filename=\"medication_report.csv\"" medications
+
+handleCSVMedicationReport2 :: String -> User -> Handler (Headers '[Header "Content-Disposition" String] [MR.MedicationReport])
+handleCSVMedicationReport2 period _user = do
+  
+  medications' :: [MR.MedicationReport] <- MR.selectAllForMedicationReport
+  let (p, title) = case period of 
+           "1" -> (MR.medication_required_before_breakfast, "before_breakfast")
+           "2" -> (MR.medication_required_with_breakfast, "with_breakfast")
+           "3" -> (MR.medication_required_after_breakfast, "after_breakfast")
+           "4" -> (MR.medication_required_before_lunch, "before_lunch")
+           "5" -> (MR.medication_required_after_lunch, "after_lunch")
+           "6" -> (MR.medication_required_before_dinner, "before_dinner")
+           "7" -> (MR.medication_required_after_dinner, "after_dinner")
+           "8" -> (MR.medication_required_bedtime, "bedtime")
+           "9" -> (MR.medication_required_as_required, "as_required")
+           "10" -> (MR.medication_required_other, "other")
+           _ ->  error "unknown medication period"
+
+{-
+    medication_required_before_breakfast :: Bool,
+    medication_required_with_breakfast :: Bool,
+    medication_required_after_breakfast :: Bool,
+
+    medication_required_before_lunch :: Bool,
+    medication_required_after_lunch :: Bool,
+
+    medication_required_before_dinner :: Bool,
+    medication_required_after_dinner :: Bool,
+
+    medication_required_bedtime :: Bool,
+
+    medication_required_as_required :: Bool,
+
+    medication_required_other :: Bool,
+
+
+-}
+
+  let medications = filter p medications'
+  return $ addHeader ("attachment;filename=\"medication_report_" ++ title ++ ".csv\"") medications
+  
+
 
 instance CSV.ToNamedRecord MR.MedicationReport
 instance CSV.DefaultOrdered MR.MedicationReport
