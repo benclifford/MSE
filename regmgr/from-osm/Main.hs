@@ -23,14 +23,7 @@ main :: IO ()
 main = do
   putStrLn "regmgr-from-osm: start"
 
-  withDB $ process "381972"
-  withDB $ process "382012"
-  withDB $ process "382015"
-  withDB $ process "382010"
-  withDB $ process "382011"
-  withDB $ process "382005"
-  withDB $ process "382006"
-  withDB $ process "382016"
+  withDB $ process "439772"
 
   putStrLn "regmgr-from-osm: done"
 

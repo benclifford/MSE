@@ -355,10 +355,10 @@ importPeople secrets conn = do
     putStrLn $ "Section name: " ++ _sectionname section
 
     -- we'll pick terms for this section that match a particular
-    -- rule - in this case, summer 2018 so that we get scouts that
-    -- are in the section near the middle of 2018.
+    -- rule -  around the camp in question
+
     let selectedTerms = filter (\t -> _termsectionid t == sectionid
-                                   && _termname t == "Summer 2018")
+                                   && _termname t == "Autumn 2018")
                                terms
 
     putStrLn $ "Selected terms: "
@@ -443,14 +443,7 @@ importPeople secrets conn = do
 importEventAttendees :: Secrets -> Connection -> IO ()
 importEventAttendees secrets conn = do
    --  section,  event,  term
-  for [("3940","381972","194040") -- scouts
-      ,("27847","382012","257591") -- adventurers cubs
-      ,("3941","382015","257594") -- aspen beavers
-      ,("3942", "382010", "257597") -- discoverers cubs
-      ,("8653", "382011", "257600")  -- explorers cubs
-      ,("38985", "382005", "257583") -- maple beavers
-      ,("19172", "382006", "257604") -- willow beavers
-      ,("2570", "382016", "257607") -- explorers
+  for [("3940","439772","194056") -- scouts
       ] $ \(section,event,term) -> do
 
     v <- getEventAttendeeList secrets section event term
