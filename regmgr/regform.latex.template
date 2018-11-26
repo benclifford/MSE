@@ -177,59 +177,5 @@ Signature: & Date: \\[50pt]
 
 If details are wrong, please change them online and reprint this form. PLEASE DO NOT AMEND BY HAND.
 
-\newpage
-
-\textbf{\huge <@ lastname @>, <@ firstname @>}
-\hfill
-\textbf{\huge <@ section @>}
-
-\textbf{\huge Activity authorisation}
-
-\medskip
-
-All activities will be run in accordance with The Scout Association's Safety Rules. Not all the activities listed will be available and attendees
-do not have to participate in any adventurous activities they do not wish to.
-
-\medskip
-
-\hrulefill
-
-<@ label_general_activities @> \field{<@ general_activities @>}
-
-\hrulefill
-
-<@ label_water_activities @> \field{<@ water_activities @>}
-
-\hrulefill
-
-<@ label_swim @> \field{<@ swim @>}
-
-\hrulefill
-
-<@ label_firearms @>: \field{<@ firearms @>}
-
-\hrulefill
-
-\vfill
-
-\hrulefill
-
-I hereby give permission for the person named above to take  part in the general activites which include those listed above and the special consent activities indicated by my signature above, organised by 1st Merrow and supervised by appropriately qualified Leaders / Instructors. I understand that the organisers reserve te right to refuse a participants permission to take part in any activity if it is felt that it is not suitable for them to do so.
-
-\begin{tabular*}{\textwidth}{@{} p{8cm} | p{8cm} @{}}
-
-\hline 
-
-Name of signer: & Relationship to attendee:  \\[50pt]
-
-\hline 
-
-Signature: & Date: \\[50pt]
-
-\hline
-
-\end{tabular*}
-
-If details are wrong, please change them online and reprint this form. PLEASE DO NOT AMEND BY HAND.
 \end{document}
 
