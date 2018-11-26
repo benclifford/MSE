@@ -231,7 +231,7 @@ updateByAuthAndModified conn val' auth oldDBTime = gupdateInto conn "regmgr_atte
 -- | generates an HTML view of this form, which may be editable
 --   or fixed text.
 regformHtml :: String -> DF.View B.Html -> Bool -> [(String, String)] -> [(Integer, Medication)] -> B.Html
-regformHtml auth view editable ls meds = do
+regformHtml auth view editable ls _meds = do
             if editable
               then B.p "Please fill out this registration form. We have put information that we know already into the form, but please check and correct that if that information is wrong."
               else do
@@ -240,6 +240,7 @@ regformHtml auth view editable ls meds = do
                   (B.a ! BA.href ("/unlock/" <> fromString auth)) "click here to edit the form again"
                   "."
 
+{-
                 B.p "Next, please enter any details of medications here:"
  
                 listOfMedications auth meds
@@ -248,11 +249,11 @@ regformHtml auth view editable ls meds = do
                     "Click here to add a new medication"
 
                 B.hr
-
+-}
                 B.p $ do
-                  "When you have entered details of medications, please "
-                  (B.a ! BA.href ("/pdf/" <> fromString auth)) "print out a copy of the complete registration pack"
-                  ", then sign each page, and return it with payment to your scout leader"
+                  "Next, please "
+                  (B.a ! BA.href ("/pdf/" <> fromString auth)) "click here and print out a copy of the complete registration pack"
+                  ", then sign each page, and return it to your scout leader"
 
                 B.p "If you need to change anything, please come back to this page and edit the information here. You will need to print and sign a new copy of the registration pack"
                   
