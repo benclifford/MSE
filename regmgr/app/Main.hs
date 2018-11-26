@@ -320,6 +320,7 @@ regformHtml auth view editable ls meds = do
               boolInputParagraph editable "remedy_anthisan" view (getLabel "remedy_anthisan" ls)
 
 
+{-
               B.hr
               B.p "All activities will be run in accordance with The Scout Association's Safety Rules. Not all the activities listed will be available and attendees do not have to participate in any adventurous activities they do not wish to."
 
@@ -328,6 +329,7 @@ regformHtml auth view editable ls meds = do
               boolInputParagraph editable "swim" view (getLabel "swim" ls)
               boolInputParagraph editable "firearms" view (getLabel "firearms" ls)
               getLabelHtml "firearms_html" ls
+-}
 
               when editable $ do
                 B.hr
@@ -609,10 +611,9 @@ registrationDigestiveForm init = Registration
   <*> "doctor_name" .: DF.string (Just $ doctor_name init)
   <*> "doctor_address" .: DF.string (Just $ doctor_address init)
   <*> "doctor_telephone" .: DF.string (Just $ doctor_telephone init)
-
-  <*> "general_activities" .: DF.choiceWith [("Y", (True, "yes")), ("N", (False, "no"))] (Just $ general_activities init) 
-  <*> "water_activities" .: DF.choiceWith [("Y", (True, "yes")), ("N", (False, "no"))] (Just $ water_activities init)  
-  <*> "swim" .: DF.choiceWith [("Y", (True, "yes")), ("N", (False, "no"))]  (Just $ swim init)
+  <*> pure False
+  <*> pure False
+  <*> pure False
 
   <*> "vegetarian" .: DF.choiceWith [("Y", (True, "yes")), ("N", (False, "no"))]  (Just $ vegetarian init)
 
@@ -622,11 +623,11 @@ registrationDigestiveForm init = Registration
   <*> "medication_diet" .: optionalTextMaybeForm (Just $ medication_diet init)
   <*> "dietary_reqs" .: optionalTextMaybeForm (Just $ dietary_reqs init)
   <*> "faith_needs" .: optionalTextMaybeForm (Just $ faith_needs init)
-  <*> "remedy_paracetamol" .: DF.choiceWith [("Y", (True, "yes")), ("N", (False, "no"))]  (Just $ swim init)
-  <*> "remedy_piriton" .: DF.choiceWith [("Y", (True, "yes")), ("N", (False, "no"))]  (Just $ swim init)
-  <*> "remedy_ibuprofen" .: DF.choiceWith [("Y", (True, "yes")), ("N", (False, "no"))]  (Just $ swim init)
-  <*> "remedy_anthisan" .: DF.choiceWith [("Y", (True, "yes")), ("N", (False, "no"))]  (Just $ swim init)
-  <*> "firearms" .: DF.choiceWith [("Y", (True, "yes")), ("N", (False, "no"))]  (Just $ swim init)
+  <*> "remedy_paracetamol" .: DF.choiceWith [("Y", (True, "yes")), ("N", (False, "no"))]  (Just $ remedy_paracetamol init)
+  <*> "remedy_piriton" .: DF.choiceWith [("Y", (True, "yes")), ("N", (False, "no"))]  (Just $ remedy_piriton init)
+  <*> "remedy_ibuprofen" .: DF.choiceWith [("Y", (True, "yes")), ("N", (False, "no"))]  (Just $ remedy_ibuprofen init)
+  <*> "remedy_anthisan" .: DF.choiceWith [("Y", (True, "yes")), ("N", (False, "no"))]  (Just $ remedy_anthisan init)
+  <*> (pure False) -- firearms
 
 
 entryEditable :: Registration -> Bool
